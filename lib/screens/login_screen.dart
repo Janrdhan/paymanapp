@@ -6,6 +6,7 @@ import 'package:paymanapp/screens/otp_screen.dart';
 import 'package:paymanapp/screens/privacy.dart';
 import 'package:paymanapp/screens/terms.dart';
 import 'package:paymanapp/widgets/api_handler.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -45,6 +46,14 @@ class _LoginScreenState extends State<LoginScreen> {
       final data = jsonDecode(response.body);
 
       if (response.statusCode == 200 && data['exists'] == true) {
+
+        SharedPreferences prefs = await SharedPreferences.getInstance();
+        await prefs.setString("phone", "$_countryCode$phone");
+        // await prefs.setString("username", data['name'] ?? "User");
+        // await prefs.setString("email", data['email'] ?? "");
+        // await prefs.setInt("userId", data['id']);
+
+
         Navigator.push(
           context,
           MaterialPageRoute(

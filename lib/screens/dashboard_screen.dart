@@ -1,9 +1,54 @@
 import 'package:flutter/material.dart';
 import 'package:paymanapp/screens/bank_list.dart';
-import 'payin.dart';
+import 'package:paymanapp/screens/payin.dart';
+import 'package:paymanapp/screens/login_screen.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
-class DashboardScreen extends StatelessWidget {
+class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
+
+  @override
+  State<DashboardScreen> createState() => _DashboardScreenState();
+}
+
+class _DashboardScreenState extends State<DashboardScreen> {
+  bool _showUserDetails = false;
+  String _name = '';
+  String _phone = '';
+  String _email = '';
+
+  @override
+  void initState() {
+    super.initState();
+    _loadUserDetails();
+  }
+
+  Future<void> _loadUserDetails() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      _name = prefs.getString('user_name') ?? 'Unknown';
+      _phone = prefs.getString('phone') ?? 'N/A';
+      _email = prefs.getString('user_email') ?? 'N/A';
+    });
+  }
+
+  void _toggleUserDetails() {
+    setState(() {
+      _showUserDetails = !_showUserDetails;
+    });
+  }
+
+  Future<void> _logout() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.clear();
+
+    if (!mounted) return;
+    Navigator.pushAndRemoveUntil(
+      context,
+      MaterialPageRoute(builder: (context) => const LoginScreen()),
+      (route) => false,
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -12,17 +57,62 @@ class DashboardScreen extends StatelessWidget {
       appBar: AppBar(
         backgroundColor: Colors.purple,
         title: const Text('PhonePe Clone', style: TextStyle(color: Colors.white)),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.account_circle, color: Colors.white),
+            onPressed: _toggleUserDetails,
+          ),
+        ],
       ),
-      body: SingleChildScrollView(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _buildMoneyTransfers(context),
-            _buildServiceGrid(),
-          ],
-        ),
+      body: Column(
+        children: [
+          if (_showUserDetails)
+            Container(
+              width: double.infinity,
+              color: Colors.purple.shade50,
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _buildUserRow(Icons.person, _name),
+                  _buildUserRow(Icons.phone, _phone),
+                  _buildUserRow(Icons.email, _email),
+                  const Divider(),
+                  TextButton.icon(
+                    onPressed: _logout,
+                    icon: const Icon(Icons.logout, color: Colors.red),
+                    label: const Text("Logout", style: TextStyle(color: Colors.red)),
+                  ),
+                ],
+              ),
+            ),
+          Expanded(
+            child: SingleChildScrollView(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _buildMoneyTransfers(context),
+                  _buildServiceGrid(),
+                ],
+              ),
+            ),
+          ),
+        ],
       ),
       bottomNavigationBar: _buildBottomNavBar(),
+    );
+  }
+
+  Widget _buildUserRow(IconData icon, String value) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: Row(
+        children: [
+          Icon(icon, size: 20, color: Colors.purple),
+          const SizedBox(width: 8),
+          Text(value, style: const TextStyle(fontSize: 16)),
+        ],
+      ),
     );
   }
 
@@ -44,10 +134,7 @@ class DashboardScreen extends StatelessWidget {
     return GestureDetector(
       onTap: () {
         if (targetScreen != null) {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => targetScreen),
-          );
+          Navigator.push(context, MaterialPageRoute(builder: (context) => targetScreen));
         }
       },
       child: Column(
@@ -75,7 +162,7 @@ class DashboardScreen extends StatelessWidget {
 
     return GridView.builder(
       shrinkWrap: true,
-      physics: NeverScrollableScrollPhysics(),
+      physics: const NeverScrollableScrollPhysics(),
       padding: const EdgeInsets.all(16),
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: 2,

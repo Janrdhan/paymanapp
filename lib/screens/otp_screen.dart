@@ -18,7 +18,7 @@ class _OTPVerificationScreenState extends State<OTPVerificationScreen> {
   bool _isLoading = false;
   bool _isOtpVisible = false;
   bool _isResending = false;
-  bool _isOtpEntered = false; // Track OTP input
+  bool _isOtpEntered = false;
 
   @override
   void initState() {
@@ -36,11 +36,10 @@ class _OTPVerificationScreenState extends State<OTPVerificationScreen> {
     super.dispose();
   }
 
-  // ✅ Function to Verify OTP
   Future<void> verifyOTP() async {
     String otp = _otpController.text.trim();
     if (otp.length != 4) {
-      showMessage("Please enter a valid 4-digit OTP.");
+      _showMessage("Please enter a valid 4-digit OTP.");
       return;
     }
 
@@ -57,24 +56,24 @@ class _OTPVerificationScreenState extends State<OTPVerificationScreen> {
       final data = jsonDecode(response.body);
 
       if (response.statusCode == 200 && data['token'] != null) {
+        print("🔵 token: ${data['token']}");
         final prefs = await SharedPreferences.getInstance();
-        await prefs.setString('token', data['token']); // Store JWT Token
+        await prefs.setString('token', data['token']);
 
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (context) => DashboardScreen()),
+          MaterialPageRoute(builder: (context) => const DashboardScreen()),
         );
       } else {
-        showMessage("Invalid OTP. Please try again.");
+        _showMessage("Invalid OTP. Please try again.");
       }
     } catch (e) {
-      showMessage("Something went wrong. Please try again.");
+      _showMessage("Something went wrong. Please try again.");
     } finally {
       setState(() => _isLoading = false);
     }
   }
 
-  // ✅ Function to Resend OTP
   Future<void> resendOTP() async {
     setState(() => _isResending = true);
 
@@ -89,21 +88,19 @@ class _OTPVerificationScreenState extends State<OTPVerificationScreen> {
       final data = jsonDecode(response.body);
 
       if (response.statusCode == 200 && data['success'] == true) {
-        showMessage("A new OTP has been sent to ${widget.phone}");
+        _showMessage("A new OTP has been sent to ${widget.phone}");
       } else {
-        showMessage("Failed to resend OTP. Try again.");
+        _showMessage("Failed to resend OTP. Try again.");
       }
     } catch (e) {
-      showMessage("Something went wrong. Please try again.");
+      _showMessage("Something went wrong. Please try again.");
     } finally {
       setState(() => _isResending = false);
     }
   }
 
-  void showMessage(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message)),
-    );
+  void _showMessage(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
   }
 
   @override
@@ -114,16 +111,13 @@ class _OTPVerificationScreenState extends State<OTPVerificationScreen> {
         child: Padding(
           padding: const EdgeInsets.all(20.0),
           child: Column(
-            mainAxisSize: MainAxisSize.min, // Keep elements centered
-            crossAxisAlignment: CrossAxisAlignment.center,
+            mainAxisSize: MainAxisSize.min,
             children: [
               const Text(
                 "Enter 4-digit Passcode",
                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 20),
-
-              // OTP Input Field
               SizedBox(
                 width: 250,
                 child: TextField(
@@ -151,8 +145,6 @@ class _OTPVerificationScreenState extends State<OTPVerificationScreen> {
                 ),
               ),
               const SizedBox(height: 20),
-
-              // Proceed Button
               _isLoading
                   ? const CircularProgressIndicator()
                   : SizedBox(
@@ -160,28 +152,15 @@ class _OTPVerificationScreenState extends State<OTPVerificationScreen> {
                       height: 45,
                       child: ElevatedButton(
                         onPressed: _isOtpEntered ? verifyOTP : null,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor:
-                              _isOtpEntered ? Colors.blue : Colors.grey,
-                          foregroundColor: Colors.white,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                        ),
                         child: const Text("Proceed"),
                       ),
                     ),
               const SizedBox(height: 15),
-
-              // Forgot Passcode / Resend OTP Button
               _isResending
                   ? const CircularProgressIndicator()
                   : TextButton(
                       onPressed: resendOTP,
-                      child: const Text(
-                        "Forgot Passcode? Resend OTP",
-                        style: TextStyle(color: Colors.blue),
-                      ),
+                      child: const Text("Forgot Passcode? Resend OTP"),
                     ),
             ],
           ),
