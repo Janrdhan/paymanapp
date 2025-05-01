@@ -3,6 +3,7 @@ import 'dart:developer';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:paymanapp/screens/BillerDetailsScreen.dart';
+import 'package:paymanapp/widgets/api_handler.dart';
 
 class Biller {
   final String billerId;
@@ -57,6 +58,9 @@ class Biller {
 }
 
 class CreditCardBillersScreen extends StatefulWidget {
+   final String phone;
+  const CreditCardBillersScreen({super.key,required this.phone});
+
   @override
   _CreditCardBillersScreenState createState() => _CreditCardBillersScreenState();
 }
@@ -64,7 +68,7 @@ class CreditCardBillersScreen extends StatefulWidget {
 class _CreditCardBillersScreenState extends State<CreditCardBillersScreen> {
   List<Biller> _billers = [];
   List<Biller> _filteredBillers = [];
-  TextEditingController _searchController = TextEditingController();
+  final TextEditingController _searchController = TextEditingController();
   String _availableAmount = "0.00";
   String _instantPayBalance = "0.00";
   bool _isLoading = true;
@@ -85,7 +89,7 @@ class _CreditCardBillersScreenState extends State<CreditCardBillersScreen> {
 
   Future<void> _fetchBillers() async {
     try {
-      final response = await http.get(Uri.parse('https://paymanfintech.in/CCBill/CreditCardBillers'));
+      final response = await http.get(Uri.parse('${ApiHandler.baseUri}/CCBill/CreditCardBillers'));
 
       if (response.statusCode == 200) {
         debugger();
@@ -214,7 +218,7 @@ class _CreditCardBillersScreenState extends State<CreditCardBillersScreen> {
   Navigator.push(
     context,
     MaterialPageRoute(
-      builder: (_) => BillerDetailsScreen(biller: biller),
+      builder: (_) => BillerDetailsScreen(biller: biller,phone: widget.phone),
     ),
   );
 },

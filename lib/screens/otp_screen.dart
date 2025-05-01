@@ -1,9 +1,10 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:paymanapp/screens/dashboard_screen.dart';
+import 'package:paymanapp/screens/set_pin_screen.dart';
 import 'package:paymanapp/widgets/api_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'dashboard_screen.dart';
 
 class OTPVerificationScreen extends StatefulWidget {
   final String phone;
@@ -46,7 +47,7 @@ class _OTPVerificationScreenState extends State<OTPVerificationScreen> {
     setState(() => _isLoading = true);
 
     try {
-      final url = Uri.parse('${ApiHandler.baseUri}/Auth/VerifyOTP');
+      final url = Uri.parse('${ApiHandler.baseUri1}/PayIn/VerifyOTP');
       final response = await http.post(
         url,
         headers: {"Content-Type": "application/json"},
@@ -56,13 +57,12 @@ class _OTPVerificationScreenState extends State<OTPVerificationScreen> {
       final data = jsonDecode(response.body);
 
       if (response.statusCode == 200 && data['token'] != null) {
-        print("🔵 token: ${data['token']}");
         final prefs = await SharedPreferences.getInstance();
         await prefs.setString('token', data['token']);
 
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (context) => const DashboardScreen()),
+          MaterialPageRoute(builder: (context) =>  DashboardScreen(phone: widget.phone)),
         );
       } else {
         _showMessage("Invalid OTP. Please try again.");
@@ -74,29 +74,23 @@ class _OTPVerificationScreenState extends State<OTPVerificationScreen> {
     }
   }
 
-  Future<void> resendOTP() async {
-    setState(() => _isResending = true);
+  void _navigateToChangePin() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => SetPinScreen(phone: widget.phone, isChangePin: true),
+      ),
+    );
+  }
 
-    try {
-      final url = Uri.parse('${ApiHandler.baseUri}/Auth/ResendOTP');
-      final response = await http.post(
-        url,
-        headers: {"Content-Type": "application/json"},
-        body: jsonEncode({"phone": widget.phone}),
-      );
-
-      final data = jsonDecode(response.body);
-
-      if (response.statusCode == 200 && data['success'] == true) {
-        _showMessage("A new OTP has been sent to ${widget.phone}");
-      } else {
-        _showMessage("Failed to resend OTP. Try again.");
-      }
-    } catch (e) {
-      _showMessage("Something went wrong. Please try again.");
-    } finally {
-      setState(() => _isResending = false);
-    }
+  void _navigateToForgotPin() {
+    // You can redirect to OTP + SetPin combo or a support/help screen
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => SetPinScreen(phone: widget.phone, isChangePin: false),
+      ),
+    );
   }
 
   void _showMessage(String message) {
@@ -108,61 +102,69 @@ class _OTPVerificationScreenState extends State<OTPVerificationScreen> {
     return Scaffold(
       appBar: AppBar(title: const Text('Verify your mobile number')),
       body: Center(
-        child: Padding(
-          padding: const EdgeInsets.all(20.0),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Text(
-                "Enter 4-digit Passcode",
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 20),
-              SizedBox(
-                width: 250,
-                child: TextField(
-                  controller: _otpController,
-                  keyboardType: TextInputType.number,
-                  maxLength: 4,
-                  obscureText: !_isOtpVisible,
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(fontSize: 22, letterSpacing: 10),
-                  decoration: InputDecoration(
-                    hintText: "• • • •",
-                    counterText: "",
-                    suffixIcon: IconButton(
-                      icon: Icon(_isOtpVisible
-                          ? Icons.visibility
-                          : Icons.visibility_off),
-                      onPressed: () {
-                        setState(() => _isOtpVisible = !_isOtpVisible);
-                      },
-                    ),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(10),
+        child: SingleChildScrollView(
+          child: Padding(
+            padding: const EdgeInsets.all(20.0),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Text(
+                  "Enter 4-digit Passcode",
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 20),
+                SizedBox(
+                  width: 250,
+                  child: TextField(
+                    controller: _otpController,
+                    keyboardType: TextInputType.number,
+                    maxLength: 4,
+                    obscureText: !_isOtpVisible,
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(fontSize: 22, letterSpacing: 10),
+                    decoration: InputDecoration(
+                      hintText: "• • • •",
+                      counterText: "",
+                      suffixIcon: IconButton(
+                        icon: Icon(
+                          _isOtpVisible ? Icons.visibility : Icons.visibility_off,
+                        ),
+                        onPressed: () => setState(() => _isOtpVisible = !_isOtpVisible),
+                      ),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
                     ),
                   ),
                 ),
-              ),
-              const SizedBox(height: 20),
-              _isLoading
-                  ? const CircularProgressIndicator()
-                  : SizedBox(
-                      width: 120,
-                      height: 45,
-                      child: ElevatedButton(
-                        onPressed: _isOtpEntered ? verifyOTP : null,
-                        child: const Text("Proceed"),
+                const SizedBox(height: 20),
+                _isLoading
+                    ? const CircularProgressIndicator()
+                    : SizedBox(
+                        width: 120,
+                        height: 45,
+                        child: ElevatedButton(
+                          onPressed: _isOtpEntered ? verifyOTP : null,
+                          child: const Text("Proceed"),
+                        ),
                       ),
-                    ),
-              const SizedBox(height: 15),
-              _isResending
-                  ? const CircularProgressIndicator()
-                  : TextButton(
-                      onPressed: resendOTP,
-                      child: const Text("Forgot Passcode? Resend OTP"),
-                    ),
-            ],
+                const SizedBox(height: 15),
+                _isResending
+                    ? const CircularProgressIndicator()
+                    : Column(
+                        children: [
+                          TextButton(
+                            onPressed: _navigateToForgotPin,
+                            child: const Text("Forgot PIN?"),
+                          ),
+                          TextButton(
+                            onPressed: _navigateToChangePin,
+                            child: const Text("Change PIN"),
+                          ),
+                        ],
+                      ),
+              ],
+            ),
           ),
         ),
       ),

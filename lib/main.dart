@@ -1,16 +1,15 @@
-//import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:paymanapp/screens/login_screen.dart';
 import 'package:paymanapp/screens/otp_screen.dart';
 import 'package:paymanapp/widgets/api_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'dart:convert';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-
   final prefs = await SharedPreferences.getInstance();
-  String? phone = prefs.getString('phone'); // nullable
+  final phone = prefs.getString('phone');
   runApp(MyApp(phone: phone));
 }
 
@@ -30,29 +29,31 @@ class MyApp extends StatelessWidget {
   }
 }
 
-/// TokenValidator Widget — checks token validity on app launch and inside app
 class TokenValidator extends StatelessWidget {
   final Widget child;
 
   const TokenValidator({super.key, required this.child});
 
-  Future<bool> _checkTokenValidity() async {
+  Future<bool> _isTokenValid() async {
     final prefs = await SharedPreferences.getInstance();
-    String? token = prefs.getString("token");
+    final token = prefs.getString("token");
+
     if (token == null) return false;
 
     try {
       final response = await http.get(
-        Uri.parse('${ApiHandler.baseUri}/Auth/ValidateToken'),
-        headers: {"Authorization": "Bearer $token"},
+        Uri.parse('${ApiHandler.baseUri1}/PayIn/ValidateToken'),
+        headers: {
+          "Authorization": "Bearer $token",
+          "Content-Type": "application/json", // ✅ Added Content-Type
+        },
       );
 
       if (response.statusCode == 200) {
-        // final data = jsonDecode(response.body);
-        // return data["isValid"] == true;
-        return true;
+        final data = jsonDecode(response.body);
+        return data['isValid'] == true;
       } else {
-        await prefs.remove("token");
+        await prefs.remove("token"); // Clear invalid token
         return false;
       }
     } catch (e) {
@@ -63,7 +64,7 @@ class TokenValidator extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return FutureBuilder<bool>(
-      future: _checkTokenValidity(),
+      future: _isTokenValid(),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Scaffold(
@@ -71,10 +72,10 @@ class TokenValidator extends StatelessWidget {
           );
         }
 
-        if (snapshot.data == true) {
-          return child;
+        if (snapshot.hasData && snapshot.data == true) {
+          return child; // ✅ Token valid, go to app
         } else {
-          return const LoginScreen();
+          return const LoginScreen(); // ❌ Invalid, redirect to login
         }
       },
     );

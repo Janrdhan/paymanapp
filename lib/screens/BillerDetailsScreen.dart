@@ -3,12 +3,14 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:paymanapp/screens/bank_list.dart';
-import 'package:paymanapp/screens/dashboard_screen.dart'; // Make sure to import your dashboard
+import 'package:paymanapp/screens/dashboard_screen.dart';
+import 'package:paymanapp/widgets/api_handler.dart'; // Make sure to import your dashboard
 
 class BillerDetailsScreen extends StatefulWidget {
   final Biller biller;
+   final String phone;
 
-  const BillerDetailsScreen({Key? key, required this.biller}) : super(key: key);
+  const BillerDetailsScreen({super.key,required this.phone, required this.biller});
 
   @override
   State<BillerDetailsScreen> createState() => _BillerDetailsScreenState();
@@ -36,7 +38,7 @@ class _BillerDetailsScreenState extends State<BillerDetailsScreen> {
     });
 
     try {
-      final url = Uri.parse('https://paymanfintech.in/CCBill/FetchCreditCardBill');
+      final url = Uri.parse('${ApiHandler.baseUri}/CCBill/FetchCreditCardBill');
 
       final response = await http.post(
         url,
@@ -95,7 +97,7 @@ class _BillerDetailsScreenState extends State<BillerDetailsScreen> {
     });
 
     try {
-      final url = Uri.parse('https://paymanfintech.in/CCBill/SubmitCreditCardPayment');
+      final url = Uri.parse('${ApiHandler.baseUri}/CCBill/SubmitCreditCardPayment');
 
       final response = await http.post(
         url,
@@ -122,7 +124,7 @@ class _BillerDetailsScreenState extends State<BillerDetailsScreen> {
                 onPressed: () {
                   Navigator.of(ctx).pop(); // Close dialog
                   Navigator.of(context).pushReplacement(
-                    MaterialPageRoute(builder: (_) => const DashboardScreen()),
+                    MaterialPageRoute(builder: (_) =>  DashboardScreen(phone: widget.phone)),
                   );
                 },
                 child: const Text("OK"),
