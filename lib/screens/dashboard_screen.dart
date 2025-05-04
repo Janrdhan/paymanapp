@@ -60,7 +60,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: [
-          _buildTransferOption(context, Icons.phone, 'To mobile number', const PayInScreen()),
+          _buildTransferOption(context, Icons.phone, 'To mobile number',  PayInScreen(phone: widget.phone)),
           _buildTransferOption(context, Icons.account_balance, 'To bank & self account', CreditCardBillersScreen(phone: widget.phone)),
           _buildTransferOption(context, Icons.account_balance_wallet, 'Check balance', null),
         ],

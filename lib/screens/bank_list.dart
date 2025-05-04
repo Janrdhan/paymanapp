@@ -73,11 +73,15 @@ class _CreditCardBillersScreenState extends State<CreditCardBillersScreen> {
   String _instantPayBalance = "0.00";
   bool _isLoading = true;
   String? _errorMessage;
+  
+   String _InstantPayAmount = "N/A";
+   String _userWalletAmount = "N/A";
 
   @override
   void initState() {
     super.initState();
     _fetchBillers();
+    getAvailableBalance();
     _searchController.addListener(_filterBillers);
   }
 
@@ -128,6 +132,30 @@ class _CreditCardBillersScreenState extends State<CreditCardBillersScreen> {
         _isLoading = false;
         _errorMessage = "Something went wrong. Check your internet connection.";
       });
+    }
+  }
+
+  Future<void> getAvailableBalance() async {
+    setState(() => _isLoading = true);
+    try {
+      final url = Uri.parse("${ApiHandler.baseUri}/Auth/GetPaymanAccountAmount");
+      final response = await http.post(
+        url,
+        headers: {"Content-Type": "application/json"},
+        body: jsonEncode({"phone": widget.phone}),
+      );
+
+      final data = jsonDecode(response.body);
+      if (data['success'] == true) {
+        setState(() {
+          _InstantPayAmount = data['instantpayamount'];
+          _userWalletAmount = data['userwalletamount'];
+        });
+      }
+    } catch (e) {
+      print("Error: $e");
+    } finally {
+      setState(() => _isLoading = false);
     }
   }
 
@@ -218,7 +246,7 @@ class _CreditCardBillersScreenState extends State<CreditCardBillersScreen> {
   Navigator.push(
     context,
     MaterialPageRoute(
-      builder: (_) => BillerDetailsScreen(biller: biller,phone: widget.phone),
+      builder: (_) => BillerDetailsScreen(biller: biller,phone: widget.phone, userWalletAmount:_userWalletAmount,instantPaysAmount:_InstantPayAmount),
     ),
   );
 },

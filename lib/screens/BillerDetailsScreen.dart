@@ -9,8 +9,10 @@ import 'package:paymanapp/widgets/api_handler.dart'; // Make sure to import your
 class BillerDetailsScreen extends StatefulWidget {
   final Biller biller;
    final String phone;
+   final String userWalletAmount;
+  final String instantPaysAmount;
 
-  const BillerDetailsScreen({super.key,required this.phone, required this.biller});
+  const BillerDetailsScreen({super.key,required this.phone, required this.biller,required this.userWalletAmount, required this.instantPaysAmount});
 
   @override
   State<BillerDetailsScreen> createState() => _BillerDetailsScreenState();
@@ -26,6 +28,10 @@ class _BillerDetailsScreenState extends State<BillerDetailsScreen> {
   bool _showBillDetails = false;
   bool _isLoading = false;
   String? _errorMessage;
+  String? _paymentMode;
+  String? _enquiryReferenceId;
+  String? _param1;
+  String? _param2;
 
   Map<String, dynamic> billDetails = {};
 
@@ -54,6 +60,10 @@ class _BillerDetailsScreenState extends State<BillerDetailsScreen> {
       final data = jsonDecode(response.body);
 
       if (response.statusCode == 200 && data['success'] == true) {
+        _paymentMode = data['paymentMode'];
+        _enquiryReferenceId = data['enquiryReferenceId'];
+        _param1 = data['param1'];
+        _param2 = data['param2'];
         billDetails = {
           "consumerName": data["consumerName"],
           "billNumber": data["billNumber"],
@@ -96,18 +106,47 @@ class _BillerDetailsScreenState extends State<BillerDetailsScreen> {
       _errorMessage = null;
     });
 
+      final enteredAmount = double.tryParse(amountController.text.trim());
+                                            final userWalletAmount = double.tryParse(widget.userWalletAmount);
+                                            final instantPaysAmount = double.tryParse(widget.instantPaysAmount);
+
+                                            if (enteredAmount == null || enteredAmount <= 100) {
+                                              ScaffoldMessenger.of(context).showSnackBar(
+                                                const SnackBar(content: Text("Enter a valid amount")),
+                                              );
+                                              return;
+                                            }
+
+                                            if (userWalletAmount == null || userWalletAmount < enteredAmount) {
+                                              ScaffoldMessenger.of(context).showSnackBar(
+                                                const SnackBar(content: Text("Insufficient wallet balance")),
+                                              );
+                                              return;
+                                            }
+
+                                            if (instantPaysAmount == null || instantPaysAmount < enteredAmount) {
+                                              ScaffoldMessenger.of(context).showSnackBar(
+                                                const SnackBar(content: Text("Service not available")),
+                                              );
+                                              return;
+                                            }
+
     try {
-      final url = Uri.parse('${ApiHandler.baseUri}/CCBill/SubmitCreditCardPayment');
+      final url = Uri.parse('${ApiHandler.baseUri}/CCBill/ProcessPayment');
 
       final response = await http.post(
         url,
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({
-          'registeredMobile': regMobileController.text.trim(),
-          'creditCardLast4': cardDigitsController.text.trim(),
-          'customerMobile': custMobileController.text.trim(),
-          'amount': amountController.text.trim(),
           'billerId': widget.biller.billerId,
+          'customerMobile': regMobileController.text.trim(),
+          'amount': amountController.text.trim(),
+          'phone': widget.phone,
+          'paymentMode': _paymentMode,
+          'enquiryReferenceId': _enquiryReferenceId,
+          'param1': _param1,
+          'param2': _param2,
+          'lastFourDigits': cardDigitsController.text.trim(),
         }),
       );
 

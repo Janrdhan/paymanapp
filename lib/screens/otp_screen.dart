@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:paymanapp/screens/dashboard_screen.dart';
+import 'package:paymanapp/screens/forgot_pin_screen.dart';
 import 'package:paymanapp/screens/set_pin_screen.dart';
 import 'package:paymanapp/widgets/api_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -88,7 +89,7 @@ class _OTPVerificationScreenState extends State<OTPVerificationScreen> {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (_) => SetPinScreen(phone: widget.phone, isChangePin: false),
+        builder: (_) => const ForgotPinScreen(),
       ),
     );
   }

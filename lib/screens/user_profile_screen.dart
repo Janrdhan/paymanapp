@@ -1,8 +1,8 @@
 import 'dart:convert';
-
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:paymanapp/screens/aadhar_verification_screen.dart';
+import 'package:paymanapp/screens/beneficiary_list_screen.dart';
 import 'package:paymanapp/screens/login_screen.dart';
 import 'package:paymanapp/screens/user_details_screen.dart';
 import 'package:paymanapp/widgets/api_handler.dart';
@@ -10,7 +10,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 class UserProfileScreen extends StatefulWidget {
   final String phone;
-  const UserProfileScreen({required this.phone,super.key});
+  const UserProfileScreen({required this.phone, super.key});
 
   @override
   State<UserProfileScreen> createState() => _UserProfileScreenState();
@@ -22,6 +22,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
   String _InstantPayAmount = "N/A";
   String _PineLabsAmount = "N/A";
   String _userWalletAmount = "N/A";
+  bool _aadharVerified = false;
 
   bool _isLoading = false;
 
@@ -29,7 +30,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
   void initState() {
     super.initState();
     _loadUserData();
-    getavaliableBalance();
+    getAvailableBalance();
   }
 
   Future<void> _loadUserData() async {
@@ -39,54 +40,39 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
       _phone = prefs.getString('phone') ?? 'N/A';
     });
   }
-  Future<void> getavaliableBalance() async {
+
+  Future<void> getAvailableBalance() async {
     setState(() => _isLoading = true);
     try {
-      print("widget.phone: ${widget.phone}");
-      final url = Uri.parse("${ApiHandler.baseUri}/Auth/GetPaymanAccountAmount"); // Replace with actual API URL
-
-      // Ensure the payload is formatted correctly
+      final url = Uri.parse("${ApiHandler.baseUri}/Auth/GetPaymanAccountAmount");
       final response = await http.post(
         url,
         headers: {"Content-Type": "application/json"},
         body: jsonEncode({"phone": widget.phone}),
       );
 
-      print("Response Body: ${response.body}");
-
       final data = jsonDecode(response.body);
-
       if (data['success'] == true) {
         setState(() {
-          print("Response instantpayamount: ${data['instantpayamount']}");
-          print("Response pinelabsamount: ${data['pinelabsamount']}");
-          print("Response userwalletamount: ${data['userwalletamount']}");
-           print("Response aadharverified: ${data['aadharverified']}");
-          //_refId = data['refid'];aadharverified
           _InstantPayAmount = data['instantpayamount'];
           _PineLabsAmount = data['pinelabsamount'];
           _userWalletAmount = data['userwalletamount'];
-
+          _aadharVerified = data['aadharverified'] == true;
         });
-        //_showMessage("OTP sent to your Aadhar linked mobile.");
-      } else {
-        //_showMessage(data['message'] ?? "Failed to send OTP. Please try again.");
       }
     } catch (e) {
-      print("Error: $e");  // Log the error for debugging
-      //_showMessage("Something went wrong. Please try again.");
+      print("Error: $e");
     } finally {
       setState(() => _isLoading = false);
     }
   }
-
 
   Widget _buildListTile(IconData icon, String title) {
     return ListTile(
       leading: Icon(icon, color: Colors.black),
       title: Text(title, style: const TextStyle(color: Colors.black, fontSize: 16)),
       trailing: const Icon(Icons.arrow_forward_ios, color: Colors.black, size: 16),
-      onTap: () {}, // Add your navigation or logic
+      onTap: () {},
     );
   }
 
@@ -124,9 +110,23 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                 TextButton(
                   onPressed: () {
                     Navigator.of(context).push(
-                        MaterialPageRoute(builder: (_) =>  UserDetailsScreen(phone: widget.phone)),
+                      MaterialPageRoute(
+                        builder: (_) => BeneficiaryListScreen(
+                          phone: widget.phone,
+                          userWalletAmount: _userWalletAmount,
+                          pineLabsAmount: _PineLabsAmount,
+                        ),
+                      ),
                     );
-                  }, // Add "Manage" logic
+                  },
+                  child: const Text("PAYMANT", style: TextStyle(color: Colors.purple)),
+                ),
+                TextButton(
+                  onPressed: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(builder: (_) => UserDetailsScreen(phone: widget.phone)),
+                    );
+                  },
                   child: const Text("Manage", style: TextStyle(color: Colors.purple)),
                 ),
               ],
@@ -141,7 +141,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
             ),
             child: Row(
               children: [
-                Image.asset("assets/images/comimage.jpg", height: 50), // Replace with your asset
+                Image.asset("assets/images/comimage.jpg", height: 50),
                 const SizedBox(width: 12),
                 const Expanded(
                   child: Column(
@@ -152,16 +152,24 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                     ],
                   ),
                 ),
-                ElevatedButton(
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (_) =>  AadharVerificationScreen(phone: widget.phone)), // Navigate to Aadhar Verification
-                    );
-                  }, // Add "Get Started" logic
-                  style: ElevatedButton.styleFrom(backgroundColor: Colors.purple),
-                  child: const Text("Get Started",style: TextStyle(color: Colors.white54),),
-                )
+                _aadharVerified
+                    ? ElevatedButton(
+                        onPressed: null,
+                        style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
+                        child: const Text("Verified", style: TextStyle(color: Colors.white)),
+                      )
+                    : ElevatedButton(
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => AadharVerificationScreen(phone: widget.phone),
+                            ),
+                          );
+                        },
+                        style: ElevatedButton.styleFrom(backgroundColor: Colors.purple),
+                        child: const Text("Get Started", style: TextStyle(color: Colors.white)),
+                      ),
               ],
             ),
           ),
@@ -183,15 +191,13 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
             leading: const Icon(Icons.logout, color: Colors.redAccent),
             title: const Text('Log out', style: TextStyle(color: Colors.redAccent)),
             onTap: () async {
-                     final prefs = await SharedPreferences.getInstance();
-                     await prefs.clear(); // Clear all stored tokens and user info
-
-  // Navigate to LoginScreen and remove all previous routes
-                    if (!mounted) return;
-                    Navigator.of(context).pushAndRemoveUntil(
-                    MaterialPageRoute(builder: (context) => const LoginScreen()), 
-                    (Route<dynamic> route) => false,
-                  );
+              final prefs = await SharedPreferences.getInstance();
+              await prefs.clear();
+              if (!mounted) return;
+              Navigator.of(context).pushAndRemoveUntil(
+                MaterialPageRoute(builder: (context) => const LoginScreen()),
+                (Route<dynamic> route) => false,
+              );
             },
           ),
         ],
@@ -219,10 +225,10 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                 borderRadius: BorderRadius.circular(10),
               ),
               child: Column(
-                children: const [
-                  Text("Wallet Amount", style: TextStyle(color: Colors.white)),
-                  SizedBox(height: 8),
-                  Text("100000.00", style: TextStyle(color: Colors.white)),
+                children: [
+                  const Text("Wallet Amount", style: TextStyle(color: Colors.white)),
+                  const SizedBox(height: 8),
+                  Text(_userWalletAmount, style: const TextStyle(color: Colors.white)),
                 ],
               ),
             ),
@@ -236,10 +242,10 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                 borderRadius: BorderRadius.circular(10),
               ),
               child: Column(
-                children: const [
-                  Text("PineLab Amount", style: TextStyle(color: Colors.white)),
-                  SizedBox(height: 8),
-                  Text("100000.00", style: TextStyle(color: Colors.white)),
+                children: [
+                  const Text("PineLab Amount", style: TextStyle(color: Colors.white)),
+                  const SizedBox(height: 8),
+                  Text(_PineLabsAmount, style: const TextStyle(color: Colors.white)),
                 ],
               ),
             ),
@@ -253,10 +259,10 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                 borderRadius: BorderRadius.circular(10),
               ),
               child: Column(
-                children: const [
-                  Text("InstantPay Amount", style: TextStyle(color: Colors.white)),
-                  SizedBox(height: 8),
-                  Text("10000.00", style: TextStyle(color: Colors.white)),
+                children: [
+                  const Text("InstantPay Amount", style: TextStyle(color: Colors.white)),
+                  const SizedBox(height: 8),
+                  Text(_InstantPayAmount, style: const TextStyle(color: Colors.white)),
                 ],
               ),
             ),

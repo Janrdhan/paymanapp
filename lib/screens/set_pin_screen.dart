@@ -14,52 +14,72 @@ class SetPinScreen extends StatefulWidget {
 }
 
 class _SetPinScreenState extends State<SetPinScreen> {
+  final TextEditingController _currentPinController = TextEditingController();
   final TextEditingController _pinController = TextEditingController();
   final TextEditingController _confirmController = TextEditingController();
+
   bool _isLoading = false;
   bool _isPinVisible = false;
 
   @override
   void dispose() {
+    _currentPinController.dispose();
     _pinController.dispose();
     _confirmController.dispose();
     super.dispose();
   }
 
   Future<void> _submitPin() async {
-    final pin = _pinController.text.trim();
+    final currentPin = _currentPinController.text.trim();
+    final newPin = _pinController.text.trim();
     final confirmPin = _confirmController.text.trim();
 
-    if (pin.length != 4 || confirmPin.length != 4) {
-      _showMessage("PIN must be exactly 4 digits.");
+    if (widget.isChangePin && currentPin.length != 4) {
+      _showMessage("Current PIN must be exactly 4 digits.");
       return;
     }
 
-    if (pin != confirmPin) {
-      _showMessage("PINs do not match.");
+    if (newPin.length != 4 || confirmPin.length != 4) {
+      _showMessage("New PIN and Confirm PIN must be exactly 4 digits.");
+      return;
+    }
+
+    if (newPin != confirmPin) {
+      _showMessage("New PIN and Confirm PIN do not match.");
       return;
     }
 
     setState(() => _isLoading = true);
 
     try {
-      final url = Uri.parse('${ApiHandler.baseUri1}/Users/SetPin');
+      final uri = Uri.parse(
+        widget.isChangePin
+            ? '${ApiHandler.baseUri1}/Users/ChangePin'
+            : '${ApiHandler.baseUri1}/Users/SetPin',
+      );
+
       final response = await http.post(
-        url,
+        uri,
         headers: {"Content-Type": "application/json"},
-        body: jsonEncode({
-          "phone": widget.phone,
-          "pin": pin,
-        }),
+        body: jsonEncode(widget.isChangePin
+            ? {
+                "phone": widget.phone,
+                "currentPin": currentPin,
+                "newPin": newPin,
+              }
+            : {
+                "phone": widget.phone,
+                "pin": newPin,
+              }),
       );
 
       final data = jsonDecode(response.body);
 
       if (response.statusCode == 200 && data['status'] == 'success') {
-        _showMessage("${widget.isChangePin ? 'PIN changed' : 'PIN set'} successfully.");
+        _showMessage(widget.isChangePin ? "PIN changed successfully." : "PIN set successfully.");
         Navigator.pop(context);
       } else {
-        _showMessage(data['message'] ?? "Failed to set PIN.");
+        _showMessage(data['message'] ?? "Failed to ${widget.isChangePin ? 'change' : 'set'} PIN.");
       }
     } catch (e) {
       _showMessage("Something went wrong. Please try again.");
@@ -83,11 +103,21 @@ class _SetPinScreenState extends State<SetPinScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Text(
-              "Enter your 4-digit ${"PIN"}",
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 30),
+            if (widget.isChangePin) ...[
+              const Text("Enter Current PIN", style: TextStyle(fontWeight: FontWeight.bold)),
+              const SizedBox(height: 10),
+              TextField(
+                controller: _currentPinController,
+                keyboardType: TextInputType.number,
+                maxLength: 4,
+                obscureText: !_isPinVisible,
+                decoration: InputDecoration(
+                  labelText: "Current PIN",
+                  border: const OutlineInputBorder(),
+                ),
+              ),
+              const SizedBox(height: 20),
+            ],
             TextField(
               controller: _pinController,
               keyboardType: TextInputType.number,
@@ -108,9 +138,9 @@ class _SetPinScreenState extends State<SetPinScreen> {
               keyboardType: TextInputType.number,
               maxLength: 4,
               obscureText: !_isPinVisible,
-              decoration: InputDecoration(
+              decoration: const InputDecoration(
                 labelText: "Confirm PIN",
-                border: const OutlineInputBorder(),
+                border: OutlineInputBorder(),
               ),
             ),
             const SizedBox(height: 30),

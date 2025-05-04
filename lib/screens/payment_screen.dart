@@ -26,7 +26,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
   String _paymentResponse = 'No payment response yet'; // ✅ Added missing variable
 
   Future<void> initiatePayment() async {
-    String? accessKey = await _paymentService.getAccessKey();
+    String? accessKey = null;//await _paymentService.getAccessKey();
     if (accessKey != null) {
       print("🛠 Access Key: $accessKey");
 
@@ -51,6 +51,8 @@ class _PaymentScreenState extends State<PaymentScreen> {
     String extractedText = match.group(0)!; // Extract matched text
     print("✅ Extracted: $extractedText");
 
+    //final resu = await _paymentService.verifyPayment(extractedText,null);
+
     // Now you can send it to API or use it as needed
     //sendPaymentResponse(extractedText);
 
@@ -73,7 +75,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
         // // Extract the required fields
         // //String result = responseJson["result"] ?? "Unknown result";
         // String status = responseJson["payment_response"]["status"] ?? "Unknown status";
-           showResponseDialog(extractedText);
+           //showResponseDialog("✅ Extracted id: $resu");
   }
         } catch (e) {
           print("❌ Error decoding payment response: $e");
@@ -111,7 +113,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
         print("✅ Payment Successful! Transaction ID: $txnId");
 
         // ✅ Call the backend API to verify success
-        await _paymentService.verifyPayment(context, txnId);
+        //await _paymentService.verifyPayment(txnId);
 
         // ✅ Show success message in AlertDialog
         showResponseDialog("Payment Successful! Transaction ID: $txnId");

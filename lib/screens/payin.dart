@@ -1,8 +1,13 @@
+import 'dart:convert';
+import 'package:easebuzz_flutter/easebuzz_flutter.dart';
 import 'package:flutter/material.dart';
-import 'payment_screen.dart';
+import 'package:flutter/services.dart';
+import 'package:paymanapp/screens/dashboard_screen.dart';
+import 'package:paymanapp/screens/payment_service.dart';
 
 class PayInScreen extends StatefulWidget {
-  const PayInScreen({super.key});
+  final String phone;
+  const PayInScreen({required this.phone,super.key});
 
   @override
   _PayInScreenState createState() => _PayInScreenState();
@@ -11,44 +16,143 @@ class PayInScreen extends StatefulWidget {
 class _PayInScreenState extends State<PayInScreen> {
   final TextEditingController cardController = TextEditingController();
   final TextEditingController mobileController = TextEditingController();
-  String selectedGateway = 'Easebuzz'; // Default gateway
+  final PaymentService _paymentService = PaymentService();
+  final EasebuzzFlutter _easebuzzFlutterPlugin = EasebuzzFlutter();
 
-  void proceedToPayment() {
-    String cardNumber = cardController.text.trim();
-    String mobileNumber = mobileController.text.trim();
+  String selectedGateway = 'Easebuzz';
+  String _paymentResponse = 'No payment response yet';
 
-    // ✅ Validation for empty fields
-    if (cardNumber.isEmpty || mobileNumber.isEmpty) {
+  Future<void> initiatePayment() async {
+
+    final cardNumber = cardController.text.trim();
+    final amount = mobileController.text.trim();
+    final gateway = selectedGateway;
+
+    if (cardNumber.isEmpty || amount.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Please enter both Card Number and Mobile Number")),
+        const SnackBar(content: Text("Please enter both Card Number and Amount")),
       );
       return;
     }
 
-    // ✅ Validation for Mobile Number (10 digits, numeric)
-    if (mobileNumber.length != 10 || !RegExp(r'^[0-9]+$').hasMatch(mobileNumber)) {
+    if (cardNumber.length != 16) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Enter a valid 10-digit Mobile Number")),
+        const SnackBar(content: Text("Please enter valid card.")),
       );
       return;
     }
 
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => PaymentScreen(
-          cardNumber: cardNumber,
-          mobileNumber: mobileNumber,
-          gatewayType: selectedGateway,
-        ),
-      ),
-    );
+    // if (mobileNumber.length != 10 || !RegExp(r'^[0-9]+$').hasMatch(mobileNumber)) {
+    //   ScaffoldMessenger.of(context).showSnackBar(
+    //     const SnackBar(content: Text("Enter a valid 10-digit Mobile Number")),
+    //   );
+    //   return;
+    // }
+
+
+    final accessKey = await _paymentService.getAccessKey(widget.phone,amount);
+    if (accessKey == null) {
+      showResponseDialog("❌ Error: Unable to get access key.");
+      return;
+    }
+
+    print("🛠 Access Key: $accessKey");
+
+    try {
+      final paymentResponse = await _easebuzzFlutterPlugin.payWithEasebuzz(accessKey, "test");
+
+      setState(() {
+        _paymentResponse = paymentResponse.toString();
+      });
+
+      if (paymentResponse != null) {
+        final RegExp regExp = RegExp(r'(SRREDU\d+)');
+        final match = regExp.firstMatch(_paymentResponse);
+
+        if (match != null) {
+          final txnId = match.group(0)!;
+          print("✅ Extracted txnId: $txnId");
+
+            
+
+   final result = await _paymentService.verifyPayment(txnId, widget.phone, cardNumber, amount, gateway);
+
+if (result.containsKey("data")) {
+  final paymentData = result["data"];
+  final msgList = paymentData["msg"];
+
+if (msgList is List && msgList.isNotEmpty) {
+  final firstMsg = msgList[0];
+  final status = paymentData["status"] ?? "Unknown";
+  final txnId = firstMsg["txnId"] ?? "N/A";
+  final amount = firstMsg["amount"] ?? "N/A";
+  
+  final now = DateTime.now();
+  String formattedDate = "${now.day}/${now.month}/${now.year} ${now.hour}:${now.minute}";
+
+  if (status == true) {
+  showResponseDialog(
+    "✅ Payment Details:\nTxn ID: $txnId\nAmount: ₹$amount\nStatus: Success\nDate: $formattedDate",
+    success: true,
+  );
+} else {
+  showResponseDialog(
+    "❌ Payment failed or status is false.",
+    success: false,
+  );
+}
+} else {
+  showResponseDialog("⚠️ Unexpected data format in 'msg': ${jsonEncode(msgList)}",success: false,);
+}
+} else {
+  showResponseDialog("⚠️ Unable to verify payment. Raw response:\n${jsonEncode(result)}",success: false,);
+}
+        } else {
+          showResponseDialog("❌ Could not extract transaction ID.",success: false,);
+        }
+      } else {
+        showResponseDialog("❌ Payment failed: No response.",success: false,);
+      }
+    } on PlatformException catch (e) {
+      setState(() {
+        _paymentResponse = jsonEncode({"message": "Payment failed", "error": e.message});
+      });
+      showResponseDialog(_paymentResponse);
+    } catch (e) {
+      showResponseDialog("Unexpected Error: $e",success: false,);
+    }
   }
+
+
+ void showResponseDialog(String message, {bool success = false}) {
+  showDialog(
+    context: context,
+    builder: (_) => AlertDialog(
+      title: const Text("Payment Response"),
+      content: SingleChildScrollView(child: Text(message)),
+      actions: [
+        TextButton(
+          onPressed: () {
+            Navigator.pop(context); // Close the dialog
+            if (success) {
+               Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (context) =>  DashboardScreen(phone: widget.phone)),
+    );
+            }
+          },
+          child: const Text("OK"),
+        ),
+      ],
+    ),
+  );
+}
+
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Pay In')),
+      appBar: AppBar(title: const Text('Pay In')),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
@@ -56,38 +160,33 @@ class _PayInScreenState extends State<PayInScreen> {
           children: [
             TextField(
               controller: cardController,
-              decoration: InputDecoration(labelText: 'Card Number'),
+              decoration: const InputDecoration(labelText: 'Card Number'),
               keyboardType: TextInputType.number,
             ),
-            SizedBox(height: 10),
+            const SizedBox(height: 10),
             TextField(
               controller: mobileController,
-              decoration: InputDecoration(labelText: 'Mobile Number'),
-              keyboardType: TextInputType.phone,
+              decoration: const InputDecoration(labelText: 'Amount'),
+              keyboardType: TextInputType.number,
             ),
-            SizedBox(height: 10),
-            Text('Gateway Type', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+            const SizedBox(height: 10),
+            const Text('Gateway Type', style: TextStyle(fontWeight: FontWeight.bold)),
             DropdownButton<String>(
               value: selectedGateway,
-              onChanged: (String? newValue) {
-                if (newValue != null) {
-                  setState(() {
-                    selectedGateway = newValue;
-                  });
-                }
+              items: ['Easebuzz', 'Razorpay', 'Layra']
+                  .map((gateway) => DropdownMenuItem(value: gateway, child: Text(gateway)))
+                  .toList(),
+              onChanged: (value) {
+                setState(() {
+                  selectedGateway = value!;
+                });
               },
-              items: ['Easebuzz', 'Razorpay', 'Layra'].map<DropdownMenuItem<String>>((String value) {
-                return DropdownMenuItem<String>(
-                  value: value,
-                  child: Text(value),
-                );
-              }).toList(),
             ),
-            SizedBox(height: 20),
+            const SizedBox(height: 20),
             Center(
               child: ElevatedButton(
-                onPressed: proceedToPayment,
-                child: Text('Proceed to Pay'),
+                onPressed: initiatePayment,
+                child: const Text('Proceed to Pay'),
               ),
             ),
           ],
