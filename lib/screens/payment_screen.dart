@@ -30,7 +30,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
     if (accessKey != null) {
       print("🛠 Access Key: $accessKey");
 
-      String payMode = "test"; // Change to "production" for live
+      String payMode = "production";//"test"; // Change to "production" for live
 
       try {
         final paymentResponse =

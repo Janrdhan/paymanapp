@@ -58,7 +58,7 @@ class _PayInScreenState extends State<PayInScreen> {
 
     try {
       final paymentResponse =
-          await _easebuzzFlutterPlugin.payWithEasebuzz(accessKey, "test");
+          await _easebuzzFlutterPlugin.payWithEasebuzz(accessKey, "production");
 
       setState(() {
         _paymentResponse = paymentResponse.toString();

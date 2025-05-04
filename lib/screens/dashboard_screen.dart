@@ -1,19 +1,35 @@
 import 'package:flutter/material.dart';
 import 'package:paymanapp/screens/bank_list.dart';
 import 'package:paymanapp/screens/payin.dart';
-//import 'package:paymanapp/screens/login_screen.dart';
 import 'package:paymanapp/screens/tokenvalidator.dart';
 import 'package:paymanapp/screens/user_profile_screen.dart';
+import 'package:paymanapp/screens/history_screen.dart'; // <- Make sure to create this screen.
 
 class DashboardScreen extends StatefulWidget {
   final String phone;
-  const DashboardScreen({required this.phone,super.key});
+  const DashboardScreen({required this.phone, super.key});
 
   @override
   State<DashboardScreen> createState() => _DashboardScreenState();
 }
 
 class _DashboardScreenState extends State<DashboardScreen> {
+  int _selectedIndex = 0;
+
+  void _onItemTapped(int index) {
+    setState(() {
+      _selectedIndex = index;
+    });
+
+    if (index == 4) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => HistoryScreen(phone: widget.phone)),
+      );
+    }
+    // You can add logic for other tabs here
+  }
+
   @override
   Widget build(BuildContext context) {
     return TokenValidator(
@@ -28,7 +44,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               onPressed: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) =>  UserProfileScreen(phone: widget.phone)),
+                  MaterialPageRoute(builder: (context) => UserProfileScreen(phone: widget.phone)),
                 );
               },
             ),
@@ -60,7 +76,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: [
-          _buildTransferOption(context, Icons.phone, 'To mobile number',  PayInScreen(phone: widget.phone)),
+          _buildTransferOption(context, Icons.phone, 'To mobile number', PayInScreen(phone: widget.phone)),
           _buildTransferOption(context, Icons.account_balance, 'To bank & self account', CreditCardBillersScreen(phone: widget.phone)),
           _buildTransferOption(context, Icons.account_balance_wallet, 'Check balance', null),
         ],
@@ -122,8 +138,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  Widget _buildBottomNavBar() {
+  BottomNavigationBar _buildBottomNavBar() {
     return BottomNavigationBar(
+      currentIndex: _selectedIndex,
+      onTap: _onItemTapped,
       selectedItemColor: Colors.blueAccent,
       unselectedItemColor: Colors.grey,
       items: const [

@@ -23,7 +23,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
   String _PineLabsAmount = "N/A";
   String _userWalletAmount = "N/A";
   bool _aadharVerified = false;
-
+  bool _isAdmin = false;
   bool _isLoading = false;
 
   @override
@@ -58,10 +58,13 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
           _PineLabsAmount = data['pinelabsamount'];
           _userWalletAmount = data['userwalletamount'];
           _aadharVerified = data['aadharverified'] == true;
+          _isAdmin = data['isadmin'] == true;
         });
       }
     } catch (e) {
-      print("Error: $e");
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Error loading data: $e")),
+      );
     } finally {
       setState(() => _isLoading = false);
     }
@@ -78,6 +81,8 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
+    String initials = _name.isNotEmpty ? _name[0].toUpperCase() : 'U';
+
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
@@ -86,188 +91,217 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
         title: const Text('Profile'),
         elevation: 0,
       ),
-      body: ListView(
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(16),
-            child: Row(
+      body: _isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : ListView(
               children: [
-                const CircleAvatar(
-                  radius: 28,
-                  backgroundColor: Colors.amber,
-                  child: Text('JJ', style: TextStyle(fontSize: 20, color: Colors.black)),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Row(
                     children: [
-                      Text(_name, style: const TextStyle(color: Colors.black, fontSize: 18, fontWeight: FontWeight.bold)),
-                      Text('+91 $_phone', style: const TextStyle(color: Colors.black)),
-                    ],
-                  ),
-                ),
-                TextButton(
-                  onPressed: () {
-                    Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (_) => BeneficiaryListScreen(
-                          phone: widget.phone,
-                          userWalletAmount: _userWalletAmount,
-                          pineLabsAmount: _PineLabsAmount,
+                      CircleAvatar(
+                        radius: 28,
+                        backgroundColor: Colors.amber,
+                        child: Text(initials, style: const TextStyle(fontSize: 20, color: Colors.black)),
+                      ),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(_name, style: const TextStyle(color: Colors.black, fontSize: 18, fontWeight: FontWeight.bold)),
+                            Text('+91 $_phone', style: const TextStyle(color: Colors.black)),
+                          ],
                         ),
                       ),
-                    );
-                  },
-                  child: const Text("PAYMANT", style: TextStyle(color: Colors.blueAccent)),
-                ),
-                TextButton(
-                  onPressed: () {
-                    Navigator.of(context).push(
-                      MaterialPageRoute(builder: (_) => UserDetailsScreen(phone: widget.phone)),
-                    );
-                  },
-                  child: const Text("Manage", style: TextStyle(color: Colors.blueAccent)),
-                ),
-              ],
-            ),
-          ),
-          Container(
-            margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: Colors.purple.shade900,
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: Row(
-              children: [
-                Image.asset("assets/images/comimage.jpg", height: 50),
-                const SizedBox(width: 12),
-                const Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text("Complete your profile", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-                      Text("Get a personalised experience and easy setup", style: TextStyle(color: Colors.white54, fontSize: 12)),
+                      if (_aadharVerified)
+                        TextButton(
+                          onPressed: () {
+                            Navigator.of(context).push(
+                              MaterialPageRoute(
+                                builder: (_) => BeneficiaryListScreen(
+                                  phone: widget.phone,
+                                  userWalletAmount: _userWalletAmount,
+                                  pineLabsAmount: _PineLabsAmount,
+                                ),
+                              ),
+                            );
+                          },
+                          child: const Text("PAYMENT", style: TextStyle(color: Colors.blueAccent)),
+                        ),
+                      TextButton(
+                        onPressed: () {
+                          Navigator.of(context).push(
+                            MaterialPageRoute(builder: (_) => UserDetailsScreen(phone: widget.phone)),
+                          );
+                        },
+                        child: const Text("Manage", style: TextStyle(color: Colors.blueAccent)),
+                      ),
                     ],
                   ),
                 ),
-                _aadharVerified
-                    ? ElevatedButton(
-                        onPressed: null,
-                        style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
-                        child: const Text("Verified", style: TextStyle(color: Colors.white)),
-                      )
-                    : ElevatedButton(
-                        onPressed: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (_) => AadharVerificationScreen(phone: widget.phone),
-                            ),
-                          );
-                        },
-                        style: ElevatedButton.styleFrom(backgroundColor: Colors.purple),
-                        child: const Text("Get Started", style: TextStyle(color: Colors.white)),
+                Container(
+                  margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.purple.shade900,
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Row(
+                    children: [
+                      Image.asset("assets/images/comimage.jpg", height: 50),
+                      const SizedBox(width: 12),
+                      const Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text("Complete your profile", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                            Text("Get a personalised experience and easy setup", style: TextStyle(color: Colors.white54, fontSize: 12)),
+                          ],
+                        ),
                       ),
+                      _aadharVerified
+                          ? ElevatedButton(
+                              onPressed: null,
+                              style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
+                              child: const Text("Verified", style: TextStyle(color: Colors.white)),
+                            )
+                          : ElevatedButton(
+                              onPressed: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (_) => AadharVerificationScreen(phone: widget.phone),
+                                  ),
+                                );
+                              },
+                              style: ElevatedButton.styleFrom(backgroundColor: Colors.purple),
+                              child: const Text("Get Started", style: TextStyle(color: Colors.white)),
+                            ),
+                    ],
+                  ),
+                ),
+                _sectionHeader(""),
+                _buildButtonRow(),
+                _sectionHeader("PREFERENCES"),
+                _buildListTile(Icons.language, 'Languages'),
+                _buildListTile(Icons.receipt_long, 'Bill notifications'),
+                _buildListTile(Icons.tune, 'Permissions'),
+                _buildListTile(Icons.color_lens, 'Theme'),
+                _buildListTile(Icons.notifications, 'Reminders'),
+                _sectionHeader("SECURITY"),
+                _buildListTile(Icons.fingerprint, 'Biometric & screen lock'),
+                _buildListTile(Icons.lock, 'Change passcode'),
+                _buildListTile(Icons.block, 'Blocked accounts'),
+                _buildListTile(Icons.info_outline, 'About App'),
+                const Divider(color: Colors.black12),
+                ListTile(
+                  leading: const Icon(Icons.logout, color: Colors.redAccent),
+                  title: const Text('Log out', style: TextStyle(color: Colors.redAccent)),
+                  onTap: () async {
+                    final confirm = await showDialog<bool>(
+                      context: context,
+                      builder: (ctx) => AlertDialog(
+                        title: const Text("Confirm Logout"),
+                        content: const Text("Are you sure you want to log out?"),
+                        actions: [
+                          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text("Cancel")),
+                          TextButton(onPressed: () => Navigator.pop(ctx, true), child: const Text("Logout")),
+                        ],
+                      ),
+                    );
+
+                    if (confirm ?? false) {
+                      final prefs = await SharedPreferences.getInstance();
+                      await prefs.clear();
+                      if (!mounted) return;
+                      Navigator.of(context).pushAndRemoveUntil(
+                        MaterialPageRoute(builder: (context) => const LoginScreen()),
+                        (route) => false,
+                      );
+                    }
+                  },
+                ),
               ],
             ),
-          ),
-          _sectionHeader(""),
-          _buildButtonRow(),
-          _sectionHeader("PREFERENCES"),
-          _buildListTile(Icons.language, 'Languages'),
-          _buildListTile(Icons.receipt_long, 'Bill notifications'),
-          _buildListTile(Icons.tune, 'Permissions'),
-          _buildListTile(Icons.color_lens, 'Theme'),
-          _buildListTile(Icons.notifications, 'Reminders'),
-          _sectionHeader("SECURITY"),
-          _buildListTile(Icons.fingerprint, 'Biometric & screen lock'),
-          _buildListTile(Icons.lock, 'Change passcode'),
-          _buildListTile(Icons.block, 'Blocked accounts'),
-          _buildListTile(Icons.info_outline, 'About App'),
-          const Divider(color: Colors.black12),
-          ListTile(
-            leading: const Icon(Icons.logout, color: Colors.redAccent),
-            title: const Text('Log out', style: TextStyle(color: Colors.redAccent)),
-            onTap: () async {
-              final prefs = await SharedPreferences.getInstance();
-              await prefs.clear();
-              if (!mounted) return;
-              Navigator.of(context).pushAndRemoveUntil(
-                MaterialPageRoute(builder: (context) => const LoginScreen()),
-                (Route<dynamic> route) => false,
-              );
-            },
-          ),
-        ],
-      ),
     );
   }
 
   Widget _sectionHeader(String title) {
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 24, 16, 8),
-      child: Text(title, style: const TextStyle(color: Colors.white60, fontSize: 14, letterSpacing: 1)),
+      child: Text(title, style: const TextStyle(color: Colors.black54, fontSize: 14, letterSpacing: 1)),
     );
   }
 
   Widget _buildButtonRow() {
+    List<Widget> rowChildren = [];
+
+    rowChildren.add(
+      Expanded(
+        child: Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: Colors.grey.shade900,
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: Column(
+            children: [
+              const Text("Wallet Amount", style: TextStyle(color: Colors.white)),
+              const SizedBox(height: 8),
+              Text(_userWalletAmount, style: const TextStyle(color: Colors.white)),
+            ],
+          ),
+        ),
+      ),
+    );
+
+    if (_isAdmin) {
+      rowChildren.add(const SizedBox(width: 16));
+      rowChildren.add(
+        Expanded(
+          child: Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: Colors.grey.shade900,
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Column(
+              children: [
+                const Text("PineLab Amount", style: TextStyle(color: Colors.white)),
+                const SizedBox(height: 8),
+                Text(_PineLabsAmount, style: const TextStyle(color: Colors.white)),
+              ],
+            ),
+          ),
+        ),
+      );
+      rowChildren.add(const SizedBox(width: 16));
+      rowChildren.add(
+        Expanded(
+          child: Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: Colors.grey.shade900,
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Column(
+              children: [
+                const Text("InstantPay Amount", style: TextStyle(color: Colors.white)),
+                const SizedBox(height: 8),
+                Text(_InstantPayAmount, style: const TextStyle(color: Colors.white)),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
+
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
-      child: Row(
-        children: [
-          Expanded(
-            child: Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: Colors.grey.shade900,
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: Column(
-                children: [
-                  const Text("Wallet Amount", style: TextStyle(color: Colors.white)),
-                  const SizedBox(height: 8),
-                  Text(_userWalletAmount, style: const TextStyle(color: Colors.white)),
-                ],
-              ),
-            ),
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: Colors.grey.shade900,
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: Column(
-                children: [
-                  const Text("PineLab Amount", style: TextStyle(color: Colors.white)),
-                  const SizedBox(height: 8),
-                  Text(_PineLabsAmount, style: const TextStyle(color: Colors.white)),
-                ],
-              ),
-            ),
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: Colors.grey.shade900,
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: Column(
-                children: [
-                  const Text("InstantPay Amount", style: TextStyle(color: Colors.white)),
-                  const SizedBox(height: 8),
-                  Text(_InstantPayAmount, style: const TextStyle(color: Colors.white)),
-                ],
-              ),
-            ),
-          ),
-        ],
+      child: SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        child: Row(children: rowChildren),
       ),
     );
   }

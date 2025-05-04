@@ -6,6 +6,7 @@ import 'package:paymanapp/screens/add_userpin_screen.dart';
 import 'package:paymanapp/screens/otp_screen.dart';
 import 'package:paymanapp/screens/privacy.dart';
 import 'package:paymanapp/screens/terms.dart';
+import 'package:paymanapp/screens/user_profile_screen.dart';
 import 'package:paymanapp/widgets/api_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -29,7 +30,9 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   Future<void> login() async {
-    String phone = _phoneController.text.trim();
+    FocusScope.of(context).unfocus(); // Dismiss keyboard
+
+    final phone = _phoneController.text.trim();
     if (!_isValidNumber) return;
 
     setState(() => _isLoading = true);
@@ -47,32 +50,43 @@ class _LoginScreenState extends State<LoginScreen> {
       if (response.statusCode == 200 && data['exists'] == true) {
         SharedPreferences prefs = await SharedPreferences.getInstance();
         await prefs.setString("phone", phone);
-             // Extract userDetails
-  final userDetails = data['userDetails'];
-  if (userDetails != null) {
-  await prefs.setString("firstName", userDetails['firstName'] ?? "");
-  await prefs.setString("lastName", userDetails['lastName'] ?? "");
-  await prefs.setString("email", userDetails['email'] ?? "");
-  await prefs.setString("customerType", userDetails['customerType'] ?? "");
 
-  bool pinVerified = userDetails['pinVerified'] ?? false;
+        final userDetails = data['userDetails'];
+        if (userDetails != null) {
+          await prefs.setString("firstName", userDetails['firstName'] ?? "");
+          await prefs.setString("lastName", userDetails['lastName'] ?? "");
+          await prefs.setString("email", userDetails['email'] ?? "");
+          await prefs.setString("customerType", userDetails['customerType'] ?? "");
 
-  if (pinVerified) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => OTPVerificationScreen(phone: phone),
-      ),
-    );
-  } else {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => AddUserPinScreen(phone: phone),
-      ),
-    );
-  }
-}
+          bool pinVerified = userDetails['pinVerified'] ?? false;
+          bool aadharVerified = userDetails['isAadherVerified'] ?? false;
+
+          if (!aadharVerified) {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => UserProfileScreen(phone: phone),
+              ),
+            );
+            return;
+          }
+
+          if (pinVerified) {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => OTPVerificationScreen(phone: phone),
+              ),
+            );
+          } else {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => AddUserPinScreen(phone: phone),
+              ),
+            );
+          }
+        }
       } else {
         _showMessage("Mobile number not registered.");
       }
@@ -91,12 +105,12 @@ class _LoginScreenState extends State<LoginScreen> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text("Need Help?"),
-        content: Text("If you need assistance, please contact support or check FAQs."),
+        title: const Text("Need Help?"),
+        content: const Text("If you need assistance, please contact support or check FAQs."),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: Text("Close"),
+            child: const Text("Close"),
           ),
         ],
       ),
@@ -106,18 +120,18 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      resizeToAvoidBottomInset: true, // ✅ Important to prevent overflow when keyboard opens
+      resizeToAvoidBottomInset: true,
       appBar: AppBar(
-        title: Text("Login"),
+        title: const Text("Login"),
         actions: [
           IconButton(
-            icon: Icon(Icons.help_outline),
+            icon: const Icon(Icons.help_outline),
             onPressed: _showHelpDialog,
           ),
         ],
       ),
       body: SafeArea(
-        child: SingleChildScrollView( // ✅ Wrapped with scrollable
+        child: SingleChildScrollView(
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 20.0),
             child: Column(
@@ -138,7 +152,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
                 const SizedBox(height: 30),
 
-                // 🔹 Phone Input
+                // Phone input
                 TextField(
                   controller: _phoneController,
                   keyboardType: TextInputType.phone,
@@ -157,7 +171,7 @@ class _LoginScreenState extends State<LoginScreen> {
                             value: _countryCode,
                             underline: const SizedBox(),
                             onChanged: (value) => setState(() => _countryCode = value!),
-                            items: [
+                            items: const [
                               DropdownMenuItem(value: "+91", child: Text("+91")),
                               DropdownMenuItem(value: "+1", child: Text("+1")),
                               DropdownMenuItem(value: "+44", child: Text("+44")),
@@ -174,7 +188,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
                 const SizedBox(height: 20),
 
-                // 🔹 Proceed Button
+                // Submit Button
                 _isLoading
                     ? const CircularProgressIndicator()
                     : SizedBox(
@@ -194,7 +208,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                 const SizedBox(height: 20),
 
-                // 🔹 Terms & Privacy
+                // Terms and privacy
                 RichText(
                   textAlign: TextAlign.center,
                   text: TextSpan(
