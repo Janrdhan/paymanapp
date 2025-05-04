@@ -20,8 +20,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
       child: Scaffold(
         backgroundColor: Colors.white,
         appBar: AppBar(
-          backgroundColor: Colors.purple,
-          title: const Text('PhonePe Clone', style: TextStyle(color: Colors.white)),
+          backgroundColor: Colors.blueAccent,
+          title: const Text('PAYMAN Dashboard', style: TextStyle(color: Colors.white)),
           actions: [
             IconButton(
               icon: const Icon(Icons.account_circle, color: Colors.white),
@@ -80,7 +80,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
           CircleAvatar(
             radius: 30,
             backgroundColor: Colors.purple.shade100,
-            child: Icon(icon, color: Colors.purple, size: 30),
+            child: Icon(icon, color: Colors.blueAccent, size: 30),
           ),
           const SizedBox(height: 8),
           Text(label, textAlign: TextAlign.center, style: const TextStyle(fontSize: 14)),
@@ -114,7 +114,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
           elevation: 3,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
           child: ListTile(
-            leading: Icon(services[index]['icon'], color: Colors.purple),
+            leading: Icon(services[index]['icon'], color: Colors.blueAccent),
             title: Text(services[index]['label']),
           ),
         );
@@ -124,7 +124,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   Widget _buildBottomNavBar() {
     return BottomNavigationBar(
-      selectedItemColor: Colors.purple,
+      selectedItemColor: Colors.blueAccent,
       unselectedItemColor: Colors.grey,
       items: const [
         BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),

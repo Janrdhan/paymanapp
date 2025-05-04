@@ -81,7 +81,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
-        backgroundColor: Colors.purple,
+        backgroundColor: Colors.blueAccent,
         foregroundColor: Colors.black,
         title: const Text('Profile'),
         elevation: 0,
@@ -119,7 +119,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                       ),
                     );
                   },
-                  child: const Text("PAYMANT", style: TextStyle(color: Colors.purple)),
+                  child: const Text("PAYMANT", style: TextStyle(color: Colors.blueAccent)),
                 ),
                 TextButton(
                   onPressed: () {
@@ -127,7 +127,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                       MaterialPageRoute(builder: (_) => UserDetailsScreen(phone: widget.phone)),
                     );
                   },
-                  child: const Text("Manage", style: TextStyle(color: Colors.purple)),
+                  child: const Text("Manage", style: TextStyle(color: Colors.blueAccent)),
                 ),
               ],
             ),

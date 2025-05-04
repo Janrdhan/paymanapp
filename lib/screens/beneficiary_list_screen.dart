@@ -364,7 +364,7 @@ class _BeneficiaryListScreenState extends State<BeneficiaryListScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text("Beneficiary List"),
-        backgroundColor: Colors.purple,
+        backgroundColor: Colors.blueAccent,
         actions: [
           IconButton(icon: const Icon(Icons.add), onPressed: _showAddBeneficiaryDialog),
         ],

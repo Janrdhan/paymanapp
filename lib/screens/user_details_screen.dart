@@ -10,7 +10,7 @@ class UserDetailsScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
-        backgroundColor: Colors.purple,
+        backgroundColor: Colors.blueAccent,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.white),
           onPressed: () => Navigator.pop(context),
@@ -48,8 +48,8 @@ class UserDetailsScreen extends StatelessWidget {
                   child: const Center(
                     child: Column(
                       children: [
-                        Icon(Icons.add, color: Colors.purple),
-                        Text("ADD NEW", style: TextStyle(color: Colors.purple, fontWeight: FontWeight.bold)),
+                        Icon(Icons.add, color: Colors.blueAccent),
+                        Text("ADD NEW", style: TextStyle(color: Colors.blueAccent, fontWeight: FontWeight.bold)),
                       ],
                     ),
                   ),
