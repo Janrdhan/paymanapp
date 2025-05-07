@@ -3,8 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:paymanapp/widgets/api_handler.dart';
 
-
-
 class ForgotPinScreen extends StatefulWidget {
   const ForgotPinScreen({super.key});
 
@@ -14,16 +12,19 @@ class ForgotPinScreen extends StatefulWidget {
 
 class _ForgotPinScreenState extends State<ForgotPinScreen> {
   final TextEditingController _phoneController = TextEditingController();
+  final TextEditingController _otpController = TextEditingController();
   final TextEditingController _pinController = TextEditingController();
   final TextEditingController _confirmController = TextEditingController();
 
   bool _isLoading = false;
   bool _isPinVisible = false;
   bool _isPhoneSubmitted = false;
+  bool _isOtpVerified = false;
 
   @override
   void dispose() {
     _phoneController.dispose();
+    _otpController.dispose();
     _pinController.dispose();
     _confirmController.dispose();
     super.dispose();
@@ -53,10 +54,44 @@ class _ForgotPinScreenState extends State<ForgotPinScreen> {
       final data = jsonDecode(response.body);
 
       if (response.statusCode == 200 && data['status'] == 'success') {
-        _showMessage("Reset mail sent successfully.");
+        _showMessage("Reset OTP sent to registered email.");
         setState(() => _isPhoneSubmitted = true);
       } else {
         _showMessage(data['message'] ?? "Failed to send reset mail.");
+      }
+    } catch (e) {
+      _showMessage("Something went wrong. Please try again.");
+    } finally {
+      setState(() => _isLoading = false);
+    }
+  }
+
+  Future<void> _verifyOtp() async {
+    final phone = _phoneController.text.trim();
+    final otp = _otpController.text.trim();
+
+    if (otp.length != 6) {
+      _showMessage("Enter the 6-digit OTP sent to your email.");
+      return;
+    }
+
+    setState(() => _isLoading = true);
+
+    try {
+      final url = Uri.parse('${ApiHandler.baseUri1}/Users/VerifyResetPinOTP');
+      final response = await http.post(
+        url,
+        headers: {"Content-Type": "application/json"},
+        body: jsonEncode({"phone": phone, "otp": otp}),
+      );
+
+      final data = jsonDecode(response.body);
+
+      if (response.statusCode == 200 && data['status'] == 'success') {
+        _showMessage("OTP verified. You can now set a new PIN.");
+        setState(() => _isOtpVerified = true);
+      } else {
+        _showMessage(data['message'] ?? "Invalid OTP.");
       }
     } catch (e) {
       _showMessage("Something went wrong. Please try again.");
@@ -70,7 +105,7 @@ class _ForgotPinScreenState extends State<ForgotPinScreen> {
     final pin = _pinController.text.trim();
     final confirmPin = _confirmController.text.trim();
 
-    if (pin.length != 4 || confirmPin.length != 4) {
+    if (pin.length != 6 || confirmPin.length != 6) {
       _showMessage("PIN must be exactly 4 digits.");
       return;
     }
@@ -108,10 +143,18 @@ class _ForgotPinScreenState extends State<ForgotPinScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("Forgot PIN")),
+      backgroundColor: Colors.white,
+      appBar: AppBar(
+        title: const Text("Forgot PIN"),
+        backgroundColor: Colors.white,
+        foregroundColor: Colors.black,
+        elevation: 1,
+      ),
       body: Padding(
         padding: const EdgeInsets.all(24.0),
-        child: _isPhoneSubmitted ? _buildPinFields() : _buildPhoneInput(),
+        child: _isPhoneSubmitted
+            ? (_isOtpVerified ? _buildPinFields() : _buildOtpInput())
+            : _buildPhoneInput(),
       ),
     );
   }
@@ -146,16 +189,46 @@ class _ForgotPinScreenState extends State<ForgotPinScreen> {
     );
   }
 
+  Widget _buildOtpInput() {
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        const Text("Enter the OTP sent to your registered email", style: TextStyle(fontSize: 16)),
+        const SizedBox(height: 20),
+        TextField(
+          controller: _otpController,
+          keyboardType: TextInputType.number,
+          maxLength: 6,
+          decoration: const InputDecoration(
+            labelText: "OTP",
+            border: OutlineInputBorder(),
+          ),
+        ),
+        const SizedBox(height: 30),
+        _isLoading
+            ? const CircularProgressIndicator()
+            : SizedBox(
+                width: double.infinity,
+                height: 50,
+                child: ElevatedButton(
+                  onPressed: _verifyOtp,
+                  child: const Text("Verify OTP"),
+                ),
+              ),
+      ],
+    );
+  }
+
   Widget _buildPinFields() {
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        const Text("Enter your new 4-digit PIN", style: TextStyle(fontSize: 16)),
+        const Text("Enter your new 6-digit PIN", style: TextStyle(fontSize: 16)),
         const SizedBox(height: 30),
         TextField(
           controller: _pinController,
           keyboardType: TextInputType.number,
-          maxLength: 4,
+          maxLength: 6,
           obscureText: !_isPinVisible,
           decoration: InputDecoration(
             labelText: "New PIN",
@@ -170,7 +243,7 @@ class _ForgotPinScreenState extends State<ForgotPinScreen> {
         TextField(
           controller: _confirmController,
           keyboardType: TextInputType.number,
-          maxLength: 4,
+          maxLength: 6,
           obscureText: !_isPinVisible,
           decoration: const InputDecoration(
             labelText: "Confirm PIN",

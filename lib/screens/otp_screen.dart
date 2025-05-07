@@ -27,7 +27,7 @@ class _OTPVerificationScreenState extends State<OTPVerificationScreen> {
     super.initState();
     _otpController.addListener(() {
       setState(() {
-        _isOtpEntered = _otpController.text.length == 4;
+        _isOtpEntered = _otpController.text.length == 6;
       });
     });
   }
@@ -40,8 +40,8 @@ class _OTPVerificationScreenState extends State<OTPVerificationScreen> {
 
   Future<void> verifyOTP() async {
     String otp = _otpController.text.trim();
-    if (otp.length != 4) {
-      _showMessage("Please enter a valid 4-digit OTP.");
+    if (otp.length != 6) {
+      _showMessage("Please enter a valid 6-digit OTP.");
       return;
     }
 
@@ -60,10 +60,12 @@ class _OTPVerificationScreenState extends State<OTPVerificationScreen> {
       if (response.statusCode == 200 && data['token'] != null) {
         final prefs = await SharedPreferences.getInstance();
         await prefs.setString('token', data['token']);
+        print("otp phone ${widget.phone}");
 
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (context) =>  DashboardScreen(phone: widget.phone)),
+          MaterialPageRoute(
+              builder: (context) => DashboardScreen(phone: widget.phone)),
         );
       } else {
         _showMessage("Invalid OTP. Please try again.");
@@ -85,7 +87,6 @@ class _OTPVerificationScreenState extends State<OTPVerificationScreen> {
   }
 
   void _navigateToForgotPin() {
-    // You can redirect to OTP + SetPin combo or a support/help screen
     Navigator.push(
       context,
       MaterialPageRoute(
@@ -95,13 +96,20 @@ class _OTPVerificationScreenState extends State<OTPVerificationScreen> {
   }
 
   void _showMessage(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
+    ScaffoldMessenger.of(context)
+        .showSnackBar(SnackBar(content: Text(message)));
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Verify your mobile number')),
+      backgroundColor: Colors.white, // White background
+      appBar: AppBar(
+        title: const Text('Verify your mobile number'),
+        backgroundColor: Colors.white,
+        foregroundColor: Colors.black,
+        elevation: 1,
+      ),
       body: Center(
         child: SingleChildScrollView(
           child: Padding(
@@ -110,7 +118,7 @@ class _OTPVerificationScreenState extends State<OTPVerificationScreen> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 const Text(
-                  "Enter 4-digit Passcode",
+                  "Enter 6-digit Passcode",
                   style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 20),
@@ -119,18 +127,21 @@ class _OTPVerificationScreenState extends State<OTPVerificationScreen> {
                   child: TextField(
                     controller: _otpController,
                     keyboardType: TextInputType.number,
-                    maxLength: 4,
+                    maxLength: 6,
                     obscureText: !_isOtpVisible,
                     textAlign: TextAlign.center,
-                    style: const TextStyle(fontSize: 22, letterSpacing: 10),
+                    style: const TextStyle(fontSize: 22, letterSpacing: 8),
                     decoration: InputDecoration(
-                      hintText: "• • • •",
+                      hintText: "- - - - - -",
                       counterText: "",
                       suffixIcon: IconButton(
                         icon: Icon(
-                          _isOtpVisible ? Icons.visibility : Icons.visibility_off,
+                          _isOtpVisible
+                              ? Icons.visibility
+                              : Icons.visibility_off,
                         ),
-                        onPressed: () => setState(() => _isOtpVisible = !_isOtpVisible),
+                        onPressed: () =>
+                            setState(() => _isOtpVisible = !_isOtpVisible),
                       ),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(10),
@@ -146,6 +157,10 @@ class _OTPVerificationScreenState extends State<OTPVerificationScreen> {
                         height: 45,
                         child: ElevatedButton(
                           onPressed: _isOtpEntered ? verifyOTP : null,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.blue,
+                            foregroundColor: Colors.white,
+                          ),
                           child: const Text("Proceed"),
                         ),
                       ),

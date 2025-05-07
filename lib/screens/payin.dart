@@ -14,47 +14,27 @@ class PayInScreen extends StatefulWidget {
 }
 
 class _PayInScreenState extends State<PayInScreen> {
+  final _formKey = GlobalKey<FormState>();
   final TextEditingController cardController = TextEditingController();
-  final TextEditingController mobileController = TextEditingController();
+  final TextEditingController amountController = TextEditingController();
   final PaymentService _paymentService = PaymentService();
   final EasebuzzFlutter _easebuzzFlutterPlugin = EasebuzzFlutter();
 
-  String selectedGateway = '';
+  String? selectedGateway;
   String _paymentResponse = 'No payment response yet';
 
   Future<void> initiatePayment() async {
+    if (!_formKey.currentState!.validate()) return;
+
     final cardNumber = cardController.text.trim();
-    final amount = mobileController.text.trim();
-    final gateway = selectedGateway;
-
-    if (cardNumber.isEmpty || amount.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Please enter both Card Number and Amount")),
-      );
-      return;
-    }
-
-    if (cardNumber.length != 16) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Please enter a valid 16-digit card number.")),
-      );
-      return;
-    }
-
-    if (gateway.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Please select a gateway.")),
-      );
-      return;
-    }
+    final amount = amountController.text.trim();
+    final gateway = selectedGateway!;
 
     final accessKey = await _paymentService.getAccessKey(widget.phone, amount);
     if (accessKey == null) {
       showResponseDialog("❌ Error: Unable to get access key.");
       return;
     }
-
-    print("🛠 Access Key: $accessKey");
 
     try {
       final paymentResponse =
@@ -70,7 +50,6 @@ class _PayInScreenState extends State<PayInScreen> {
 
         if (match != null) {
           final txnId = match.group(0)!;
-          print("✅ Extracted txnId: $txnId");
 
           final result = await _paymentService.verifyPayment(
               txnId, widget.phone, cardNumber, amount, gateway);
@@ -95,40 +74,27 @@ class _PayInScreenState extends State<PayInScreen> {
                   success: true,
                 );
               } else {
-                showResponseDialog(
-                  "❌ Payment failed or status is false.",
-                  success: false,
-                );
+                showResponseDialog("❌ Payment failed or status is false.");
               }
             } else {
-              showResponseDialog(
-                "⚠️ Unexpected data format in 'msg': ${jsonEncode(msgList)}",
-                success: false,
-              );
+              showResponseDialog("⚠️ Unexpected data format in 'msg': ${jsonEncode(msgList)}");
             }
           } else {
-            showResponseDialog(
-              "⚠️ Unable to verify payment. Raw response:\n${jsonEncode(result)}",
-              success: false,
-            );
+            showResponseDialog("⚠️ Unable to verify payment:\n${jsonEncode(result)}");
           }
         } else {
-          showResponseDialog(
-            "❌ Could not extract transaction ID.",
-            success: false,
-          );
+          showResponseDialog("❌ Could not extract transaction ID.");
         }
       } else {
-        showResponseDialog("❌ Payment failed: No response.", success: false);
+        showResponseDialog("❌ Payment failed: No response.");
       }
     } on PlatformException catch (e) {
       setState(() {
-        _paymentResponse =
-            jsonEncode({"message": "Payment failed", "error": e.message});
+        _paymentResponse = jsonEncode({"message": "Payment failed", "error": e.message});
       });
       showResponseDialog(_paymentResponse);
     } catch (e) {
-      showResponseDialog("Unexpected Error: $e", success: false);
+      showResponseDialog("Unexpected Error: $e");
     }
   }
 
@@ -145,9 +111,7 @@ class _PayInScreenState extends State<PayInScreen> {
               if (success) {
                 Navigator.pushReplacement(
                   context,
-                  MaterialPageRoute(
-                      builder: (context) =>
-                          DashboardScreen(phone: widget.phone)),
+                  MaterialPageRoute(builder: (context) => DashboardScreen(phone: widget.phone)),
                 );
               }
             },
@@ -162,60 +126,79 @@ class _PayInScreenState extends State<PayInScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('Pay In')),
+      backgroundColor: Colors.white, // ✅ Force background to white
       body: Padding(
         padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            TextField(
-              controller: cardController,
-              decoration: const InputDecoration(labelText: 'Card Number'),
-              keyboardType: TextInputType.number,
-              inputFormatters: [
-                FilteringTextInputFormatter.digitsOnly,
-                LengthLimitingTextInputFormatter(16),
-              ],
-            ),
-            const SizedBox(height: 10),
-            TextField(
-              controller: mobileController,
-              decoration: const InputDecoration(labelText: 'Amount'),
-              keyboardType: TextInputType.number,
-            ),
-            const SizedBox(height: 10),
-            const Text('Gateway Type',
-                style: TextStyle(fontWeight: FontWeight.bold)),
-            DropdownButton<String>(
-              value: selectedGateway.isEmpty ? null : selectedGateway,
-              hint: const Text('Select Gateway'),
-              isExpanded: true,
-              items: [
-                const DropdownMenuItem<String>(
-                  value: '',
-                  enabled: false,
-                  child: Text('Select Gateway'),
+        child: Form(
+          key: _formKey,
+          child: ListView(
+            children: [
+              TextFormField(
+                controller: cardController,
+                decoration: const InputDecoration(
+                  labelText: 'Card Number',
+                  border: OutlineInputBorder(),
                 ),
-                ...['Easebuzz', 'Razorpay', 'Layra'].map(
-                  (gateway) => DropdownMenuItem<String>(
+                keyboardType: TextInputType.number,
+                inputFormatters: [
+                  FilteringTextInputFormatter.digitsOnly,
+                  LengthLimitingTextInputFormatter(16),
+                ],
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Card number is required';
+                  }
+                  if (value.length != 16) {
+                    return 'Card number must be 16 digits';
+                  }
+                  return null;
+                },
+              ),
+              const SizedBox(height: 16),
+              TextFormField(
+                controller: amountController,
+                decoration: const InputDecoration(
+                  labelText: 'Amount',
+                  border: OutlineInputBorder(),
+                ),
+                keyboardType: TextInputType.number,
+                inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Amount is required';
+                  }
+                  if (int.tryParse(value) == null || int.parse(value) <= 0) {
+                    return 'Enter a valid amount';
+                  }
+                  return null;
+                },
+              ),
+              const SizedBox(height: 16),
+              const Text('Gateway Type', style: TextStyle(fontWeight: FontWeight.bold)),
+              DropdownButtonFormField<String>(
+                value: selectedGateway,
+                hint: const Text('Select Gateway'),
+                isExpanded: true,
+                decoration: const InputDecoration(border: OutlineInputBorder()),
+                items: ['Easebuzz', 'Razorpay', 'Layra'].map((gateway) {
+                  return DropdownMenuItem<String>(
                     value: gateway,
                     child: Text(gateway),
-                  ),
-                ),
-              ],
-              onChanged: (value) {
-                setState(() {
-                  selectedGateway = value!;
-                });
-              },
-            ),
-            const SizedBox(height: 20),
-            Center(
-              child: ElevatedButton(
-                onPressed: initiatePayment,
-                child: const Text('Proceed to Pay'),
+                  );
+                }).toList(),
+                validator: (value) =>
+                    value == null || value.isEmpty ? 'Please select a gateway' : null,
+                onChanged: (value) => setState(() => selectedGateway = value),
               ),
-            ),
-          ],
+              const SizedBox(height: 24),
+              Center(
+                child: ElevatedButton(
+                  onPressed: initiatePayment,
+                  child: const Text('Proceed to Pay'),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

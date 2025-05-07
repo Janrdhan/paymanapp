@@ -115,7 +115,7 @@ class _NewUserDetailsScreenState extends State<NewUserDetailsScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text("New User Details"),
-        backgroundColor: Colors.purple,
+        backgroundColor: Colors.blueAccent,
       ),
       body: Padding(
         padding: const EdgeInsets.all(16),
@@ -164,12 +164,15 @@ class _NewUserDetailsScreenState extends State<NewUserDetailsScreen> {
               ElevatedButton(
                 onPressed: _isSubmitting ? null : _submitForm,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.purple,
+                  backgroundColor: Colors.blueAccent,
                   padding: const EdgeInsets.symmetric(vertical: 16),
                 ),
                 child: _isSubmitting
                     ? const CircularProgressIndicator(color: Colors.white)
-                    : const Text('Submit'),
+                    : const Text('Submit', style: TextStyle(
+                                            color: Colors.white,
+                                            fontSize: 16,
+                                            fontWeight: FontWeight.bold)),
               ),
             ],
           ),

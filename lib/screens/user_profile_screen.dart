@@ -237,71 +237,40 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
   Widget _buildButtonRow() {
     List<Widget> rowChildren = [];
 
-    rowChildren.add(
-      Expanded(
-        child: Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: Colors.grey.shade900,
-            borderRadius: BorderRadius.circular(10),
-          ),
-          child: Column(
-            children: [
-              const Text("Wallet Amount", style: TextStyle(color: Colors.white)),
-              const SizedBox(height: 8),
-              Text(_userWalletAmount, style: const TextStyle(color: Colors.white)),
-            ],
-          ),
-        ),
-      ),
-    );
+    rowChildren.add(_amountCard("Wallet Amount", _userWalletAmount));
 
     if (_isAdmin) {
       rowChildren.add(const SizedBox(width: 16));
-      rowChildren.add(
-        Expanded(
-          child: Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: Colors.grey.shade900,
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: Column(
-              children: [
-                const Text("PineLab Amount", style: TextStyle(color: Colors.white)),
-                const SizedBox(height: 8),
-                Text(_PineLabsAmount, style: const TextStyle(color: Colors.white)),
-              ],
-            ),
-          ),
-        ),
-      );
+      rowChildren.add(_amountCard("PineLab Amount", _PineLabsAmount));
       rowChildren.add(const SizedBox(width: 16));
-      rowChildren.add(
-        Expanded(
-          child: Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: Colors.grey.shade900,
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: Column(
-              children: [
-                const Text("InstantPay Amount", style: TextStyle(color: Colors.white)),
-                const SizedBox(height: 8),
-                Text(_InstantPayAmount, style: const TextStyle(color: Colors.white)),
-              ],
-            ),
-          ),
-        ),
-      );
+      rowChildren.add(_amountCard("InstantPay Amount", _InstantPayAmount));
     }
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: SingleChildScrollView(
         scrollDirection: Axis.horizontal,
-        child: Row(children: rowChildren),
+        child: Row(
+          children: rowChildren.map((child) => Padding(padding: const EdgeInsets.only(right: 8), child: child)).toList(),
+        ),
+      ),
+    );
+  }
+
+  Widget _amountCard(String title, String amount) {
+    return Container(
+      width: 150,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.grey.shade900,
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: Column(
+        children: [
+          Text(title, style: const TextStyle(color: Colors.white)),
+          const SizedBox(height: 8),
+          Text(amount, style: const TextStyle(color: Colors.white)),
+        ],
       ),
     );
   }

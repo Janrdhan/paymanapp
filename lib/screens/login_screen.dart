@@ -30,7 +30,7 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   Future<void> login() async {
-    FocusScope.of(context).unfocus(); // Dismiss keyboard
+    FocusScope.of(context).unfocus();
 
     final phone = _phoneController.text.trim();
     if (!_isValidNumber) return;
@@ -44,11 +44,13 @@ class _LoginScreenState extends State<LoginScreen> {
         headers: {"Content-Type": "application/json"},
         body: jsonEncode({"phone": phone}),
       );
+     
 
       final data = jsonDecode(response.body);
 
       if (response.statusCode == 200 && data['exists'] == true) {
         SharedPreferences prefs = await SharedPreferences.getInstance();
+         print("login phone ${phone}");
         await prefs.setString("phone", phone);
 
         final userDetails = data['userDetails'];
@@ -121,8 +123,12 @@ class _LoginScreenState extends State<LoginScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       resizeToAvoidBottomInset: true,
+      backgroundColor: Colors.white, // White background
       appBar: AppBar(
         title: const Text("Login"),
+        backgroundColor: Colors.white,
+        foregroundColor: Colors.black,
+        elevation: 1,
         actions: [
           IconButton(
             icon: const Icon(Icons.help_outline),
@@ -132,7 +138,8 @@ class _LoginScreenState extends State<LoginScreen> {
       ),
       body: SafeArea(
         child: SingleChildScrollView(
-          child: Padding(
+          child: Container(
+            color: Colors.white,
             padding: const EdgeInsets.symmetric(horizontal: 20.0),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.center,
@@ -152,7 +159,6 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
                 const SizedBox(height: 30),
 
-                // Phone input
                 TextField(
                   controller: _phoneController,
                   keyboardType: TextInputType.phone,
@@ -188,7 +194,6 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
                 const SizedBox(height: 20),
 
-                // Submit Button
                 _isLoading
                     ? const CircularProgressIndicator()
                     : SizedBox(
@@ -208,7 +213,6 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                 const SizedBox(height: 20),
 
-                // Terms and privacy
                 RichText(
                   textAlign: TextAlign.center,
                   text: TextSpan(
