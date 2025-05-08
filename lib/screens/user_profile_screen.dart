@@ -5,6 +5,7 @@ import 'package:paymanapp/screens/aadhar_verification_screen.dart';
 import 'package:paymanapp/screens/beneficiary_list_screen.dart';
 import 'package:paymanapp/screens/login_screen.dart';
 import 'package:paymanapp/screens/user_details_screen.dart';
+import 'package:paymanapp/screens/users_listscreen.dart';
 import 'package:paymanapp/widgets/api_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -25,6 +26,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
   bool _aadharVerified = false;
   bool _isAdmin = false;
   bool _isLoading = false;
+  String _CustomerType = "N/A";
 
   @override
   void initState() {
@@ -59,6 +61,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
           _userWalletAmount = data['userwalletamount'];
           _aadharVerified = data['aadharverified'] == true;
           _isAdmin = data['isadmin'] == true;
+          _CustomerType = data['customerType'];
         });
       }
     } catch (e) {
@@ -70,12 +73,12 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
     }
   }
 
-  Widget _buildListTile(IconData icon, String title) {
+  Widget _buildListTile(IconData icon, String title, [VoidCallback? onTap]) {
     return ListTile(
       leading: Icon(icon, color: Colors.black),
       title: Text(title, style: const TextStyle(color: Colors.black, fontSize: 16)),
       trailing: const Icon(Icons.arrow_forward_ios, color: Colors.black, size: 16),
-      onTap: () {},
+      onTap: onTap,
     );
   }
 
@@ -132,7 +135,13 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                       TextButton(
                         onPressed: () {
                           Navigator.of(context).push(
-                            MaterialPageRoute(builder: (_) => UserDetailsScreen(phone: widget.phone)),
+                            MaterialPageRoute(
+                              builder: (_) => UserDetailsScreen(
+                                phone: widget.phone,
+                                isAdmin: _isAdmin,
+                                customerType: _CustomerType,
+                              ),
+                            ),
                           );
                         },
                         child: const Text("Manage", style: TextStyle(color: Colors.blueAccent)),
@@ -185,6 +194,17 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                 _buildButtonRow(),
                 _sectionHeader("PREFERENCES"),
                 _buildListTile(Icons.language, 'Languages'),
+                ...[
+                  if (_isAdmin)
+                    _buildListTile(Icons.group, 'Users List', () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => UsersListScreen(phone: widget.phone, isAdmin: _isAdmin),
+                        ),
+                      );
+                    }),
+                ],
                 _buildListTile(Icons.receipt_long, 'Bill notifications'),
                 _buildListTile(Icons.tune, 'Permissions'),
                 _buildListTile(Icons.color_lens, 'Theme'),

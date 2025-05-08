@@ -6,7 +6,15 @@ import 'package:paymanapp/widgets/api_handler.dart';
 
 class NewUserDetailsScreen extends StatefulWidget {
   final String phone;
-  const NewUserDetailsScreen({required this.phone,super.key});
+  final bool isAdmin;
+  final Map<String, dynamic>? userData;
+
+  const NewUserDetailsScreen({
+    required this.phone,
+    required this.isAdmin,
+    this.userData,
+    super.key,
+  });
 
   @override
   State<NewUserDetailsScreen> createState() => _NewUserDetailsScreenState();
@@ -23,8 +31,42 @@ class _NewUserDetailsScreenState extends State<NewUserDetailsScreen> {
   bool _isActive = false;
   bool _isSubmitting = false;
 
+  bool? _payIn = false;
+  bool? _payOut = false;
+  bool? _ccBill = false;
+
   final List<String> _customerTypes = ['Distributor', 'Retailer'];
-  final List<String> _margins = ['1.20', '1.30', '1.40','1.42','1.50'];
+  final List<String> _margins = ['1.20', '1.30', '1.40', '1.42', '1.50'];
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.userData != null) {
+      final user = widget.userData!;
+      _firstNameController.text = user['firstName'] ?? '';
+      _lastNameController.text = user['lastName'] ?? '';
+      _emailController.text = user['email'] ?? '';
+      _phoneController.text = user['phone'] ?? '';
+
+      final customerType = user['customerType']?.toString();
+      if (_customerTypes.contains(customerType)) {
+        _selectedCustomerType = customerType;
+      }
+
+      final marginStr = user['margin']?.toString();
+      if (_margins.contains(marginStr)) {
+        _selectedMargin = marginStr;
+      }
+
+      _isActive = user['isActive'] == true;
+
+      if (widget.isAdmin) {
+        _payIn = user['payIn'] == true;
+        _payOut = user['payOut'] == true;
+        _ccBill = user['ccBill'] == true;
+      }
+    }
+  }
 
   @override
   void dispose() {
@@ -40,48 +82,75 @@ class _NewUserDetailsScreenState extends State<NewUserDetailsScreen> {
 
     setState(() => _isSubmitting = true);
 
-    final url = Uri.parse('${ApiHandler.baseUri1}/Users/CreateUser'); // Replace with your API
+    final isEdit = widget.userData != null;
+    final url = isEdit
+        ? Uri.parse('${ApiHandler.baseUri1}/Users/UpdateUser')
+        : Uri.parse('${ApiHandler.baseUri1}/Users/CreateUser');
 
-    final response = await http.post(
-      url,
-      headers: {'Content-Type': 'application/json'},
-      body: json.encode({
-        "firstName": _firstNameController.text.trim(),
-        "lastName": _lastNameController.text.trim(),
-        "email": _emailController.text.trim(),
-        "phone": _phoneController.text.trim(),
-        "customerType": _selectedCustomerType,
-        "margin": _selectedMargin,
-        "isActive": _isActive,
-      }),
-    );
+    final body = {
+      "firstName": _firstNameController.text.trim(),
+      "lastName": _lastNameController.text.trim(),
+      "email": _emailController.text.trim(),
+      "phone": _phoneController.text.trim(),
+      "customerType": _selectedCustomerType,
+      "margin": _selectedMargin,
+      "isActive": _isActive,
+    };
 
-    setState(() => _isSubmitting = false);
+    if (widget.isAdmin) {
+      body["payIn"] = _payIn;
+      body["payOut"] = _payOut;
+      body["ccBill"] = _ccBill;
+    }
 
-    final responseData = json.decode(response.body);
-    final isSuccess = response.statusCode == 200 && responseData['status'] == 'success';
-    final message = responseData['message'] ?? (isSuccess ? 'User added successfully' : 'Something went wrong');
+    if (isEdit) {
+      body["id"] = widget.userData!["id"];
+    }
 
-    await showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text(isSuccess ? 'Success' : 'Error'),
-        content: Text(message),
-        actions: [
-          TextButton(
-            onPressed: () {
-              Navigator.of(context).pop(); // Close dialog
-              if (isSuccess) {
-                Navigator.of(context).push(
-                        MaterialPageRoute(builder: (_) =>  DashboardScreen(phone: widget.phone)),
+    try {
+      final response = await http.post(
+        url,
+        headers: {'Content-Type': 'application/json'},
+        body: json.encode(body),
+      );
+
+      setState(() => _isSubmitting = false);
+
+      final responseData = json.decode(response.body);
+      final isSuccess = response.statusCode == 200 && responseData['status'] == 'success';
+      final message = responseData['message'] ?? (isSuccess ? 'User saved successfully' : 'Something went wrong');
+
+      await showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: Text(isSuccess ? 'Success' : 'Error'),
+          content: Text(message),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+                if (isSuccess) {
+                  Navigator.of(context).pushReplacement(
+                    MaterialPageRoute(builder: (_) => DashboardScreen(phone: widget.phone)),
                   );
-              }
-            },
-            child: const Text("OK"),
-          ),
-        ],
-      ),
-    );
+                }
+              },
+              child: const Text("OK"),
+            ),
+          ],
+        ),
+      );
+    } catch (error) {
+      setState(() => _isSubmitting = false);
+      print("Error: $error");
+      await showDialog(
+        context: context,
+        builder: (context) => const AlertDialog(
+          title: Text('Error'),
+          content: Text('An error occurred while updating the user.'),
+        ),
+      );
+    }
   }
 
   Widget _buildTextField(TextEditingController controller, String label,
@@ -112,9 +181,11 @@ class _NewUserDetailsScreenState extends State<NewUserDetailsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isEdit = widget.userData != null;
+
     return Scaffold(
       appBar: AppBar(
-        title: const Text("New User Details"),
+        title: Text(isEdit ? "Edit User" : "New User Details"),
         backgroundColor: Colors.blueAccent,
       ),
       body: Padding(
@@ -160,6 +231,24 @@ class _NewUserDetailsScreenState extends State<NewUserDetailsScreen> {
                 value: _isActive,
                 onChanged: (value) => setState(() => _isActive = value),
               ),
+              const SizedBox(height: 12),
+              if (widget.isAdmin) ...[
+                SwitchListTile(
+                  title: const Text('Pay In'),
+                  value: _payIn ?? false,
+                  onChanged: (value) => setState(() => _payIn = value),
+                ),
+                SwitchListTile(
+                  title: const Text('Pay Out'),
+                  value: _payOut ?? false,
+                  onChanged: (value) => setState(() => _payOut = value),
+                ),
+                SwitchListTile(
+                  title: const Text('CC Bill'),
+                  value: _ccBill ?? false,
+                  onChanged: (value) => setState(() => _ccBill = value),
+                ),
+              ],
               const SizedBox(height: 20),
               ElevatedButton(
                 onPressed: _isSubmitting ? null : _submitForm,
@@ -169,10 +258,14 @@ class _NewUserDetailsScreenState extends State<NewUserDetailsScreen> {
                 ),
                 child: _isSubmitting
                     ? const CircularProgressIndicator(color: Colors.white)
-                    : const Text('Submit', style: TextStyle(
-                                            color: Colors.white,
-                                            fontSize: 16,
-                                            fontWeight: FontWeight.bold)),
+                    : Text(
+                        isEdit ? 'Update' : 'Submit',
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
               ),
             ],
           ),

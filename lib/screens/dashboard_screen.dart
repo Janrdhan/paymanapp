@@ -5,6 +5,7 @@ import 'package:paymanapp/screens/payin.dart';
 import 'package:paymanapp/screens/tokenvalidator.dart';
 import 'package:paymanapp/screens/user_profile_screen.dart';
 import 'package:paymanapp/screens/history_screen.dart';
+import 'package:paymanapp/screens/login_screen.dart'; // <-- Add your login screen import
 
 class DashboardScreen extends StatefulWidget {
   final String phone;
@@ -19,6 +20,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   late final PageController _pageController;
   int _currentPage = 0;
   late final Timer _carouselTimer;
+  Timer? _inactivityTimer;
 
   final List<String> imagePaths = [
     'assets/images/1.png',
@@ -44,12 +46,52 @@ class _DashboardScreenState extends State<DashboardScreen> {
         );
       }
     });
+    _resetInactivityTimer(); // Start the inactivity timer
+  }
+
+  void _resetInactivityTimer() {
+    _inactivityTimer?.cancel();
+    _inactivityTimer = Timer(const Duration(minutes: 5), _handleInactivity);
+  }
+
+  void _handleUserInteraction([_]) {
+    _resetInactivityTimer();
+  }
+
+  void _handleInactivity() async {
+    bool? shouldLogout = await showDialog<bool>(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => AlertDialog(
+        title: const Text("Session Timeout"),
+        content: const Text("You have been idle for 1 minute. Do you want to logout?"),
+        actions: [
+          TextButton(
+            child: const Text("Stay Logged In"),
+            onPressed: () => Navigator.of(context).pop(false),
+          ),
+          TextButton(
+            child: const Text("Logout"),
+            onPressed: () => Navigator.of(context).pop(true),
+          ),
+        ],
+      ),
+    );
+
+    if (shouldLogout == true) {
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(builder: (_) => const LoginScreen()), // Update this if needed
+      );
+    } else {
+      _resetInactivityTimer();
+    }
   }
 
   @override
   void dispose() {
     _pageController.dispose();
     _carouselTimer.cancel();
+    _inactivityTimer?.cancel();
     super.dispose();
   }
 
@@ -67,25 +109,30 @@ class _DashboardScreenState extends State<DashboardScreen> {
   @override
   Widget build(BuildContext context) {
     return TokenValidator(
-      child: Scaffold(
-        backgroundColor: Colors.white,
-        appBar: AppBar(
-          backgroundColor: Colors.blueAccent,
-          title: const Text('PAYMAN Dashboard', style: TextStyle(color: Colors.white)),
-          actions: [
-            IconButton(
-              icon: const Icon(Icons.account_circle, color: Colors.white),
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => UserProfileScreen(phone: widget.phone)),
-                );
-              },
-            ),
-          ],
+      child: Listener(
+        onPointerDown: _handleUserInteraction,
+        onPointerMove: _handleUserInteraction,
+        onPointerUp: _handleUserInteraction,
+        child: Scaffold(
+          backgroundColor: Colors.white,
+          appBar: AppBar(
+            backgroundColor: Colors.blueAccent,
+            title: const Text('PAYMAN Dashboard', style: TextStyle(color: Colors.white)),
+            actions: [
+              IconButton(
+                icon: const Icon(Icons.account_circle, color: Colors.white),
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => UserProfileScreen(phone: widget.phone)),
+                  );
+                },
+              ),
+            ],
+          ),
+          body: _buildDashboardBody(),
+          bottomNavigationBar: _buildBottomNavBar(),
         ),
-        body: _buildDashboardBody(),
-        bottomNavigationBar: _buildBottomNavBar(),
       ),
     );
   }

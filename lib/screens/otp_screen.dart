@@ -20,15 +20,14 @@ class _OTPVerificationScreenState extends State<OTPVerificationScreen> {
   bool _isLoading = false;
   bool _isOtpVisible = false;
   bool _isResending = false;
-  bool _isOtpEntered = false;
 
   @override
   void initState() {
     super.initState();
     _otpController.addListener(() {
-      setState(() {
-        _isOtpEntered = _otpController.text.length == 6;
-      });
+      if (_otpController.text.length == 6 && !_isLoading) {
+        verifyOTP(); // Auto-submit OTP when 6 digits are entered
+      }
     });
   }
 
@@ -60,7 +59,6 @@ class _OTPVerificationScreenState extends State<OTPVerificationScreen> {
       if (response.statusCode == 200 && data['token'] != null) {
         final prefs = await SharedPreferences.getInstance();
         await prefs.setString('token', data['token']);
-        print("otp phone ${widget.phone}");
 
         Navigator.pushReplacement(
           context,
@@ -96,14 +94,13 @@ class _OTPVerificationScreenState extends State<OTPVerificationScreen> {
   }
 
   void _showMessage(String message) {
-    ScaffoldMessenger.of(context)
-        .showSnackBar(SnackBar(content: Text(message)));
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white, // White background
+      backgroundColor: Colors.white,
       appBar: AppBar(
         title: const Text('Verify your mobile number'),
         backgroundColor: Colors.white,
@@ -150,20 +147,10 @@ class _OTPVerificationScreenState extends State<OTPVerificationScreen> {
                   ),
                 ),
                 const SizedBox(height: 20),
-                _isLoading
-                    ? const CircularProgressIndicator()
-                    : SizedBox(
-                        width: 120,
-                        height: 45,
-                        child: ElevatedButton(
-                          onPressed: _isOtpEntered ? verifyOTP : null,
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.blue,
-                            foregroundColor: Colors.white,
-                          ),
-                          child: const Text("Proceed"),
-                        ),
-                      ),
+                if (_isLoading)
+                  const CircularProgressIndicator()
+                else
+                  const SizedBox(height: 45), // Placeholder to keep layout stable
                 const SizedBox(height: 15),
                 _isResending
                     ? const CircularProgressIndicator()
