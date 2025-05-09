@@ -94,7 +94,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
       backgroundColor: Colors.white,
       appBar: AppBar(
         backgroundColor: Colors.blueAccent,
-        foregroundColor: Colors.black,
+        foregroundColor: Colors.white,
         title: const Text('Profile'),
         elevation: 0,
       ),

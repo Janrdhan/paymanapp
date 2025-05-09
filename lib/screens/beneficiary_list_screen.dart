@@ -132,7 +132,7 @@ class _BeneficiaryListScreenState extends State<BeneficiaryListScreen> {
                 ),
                 DropdownButtonFormField<String>(
                   value: selectedTxn,
-                  items: ['IMPS', 'NEFT', 'RTGS']
+                  items: ['IMPS']
                       .map((txn) => DropdownMenuItem(value: txn, child: Text(txn)))
                       .toList(),
                   onChanged: (val) => selectedTxn = val,

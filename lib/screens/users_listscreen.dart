@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:paymanapp/screens/new_user_details_screen.dart';
 import 'package:paymanapp/widgets/api_handler.dart';
-//import 'user_edit_screen.dart';
 
 class UsersListScreen extends StatefulWidget {
   final String phone;
@@ -44,28 +43,76 @@ class _UsersListScreenState extends State<UsersListScreen> {
     }
   }
 
+  Widget _buildBoolCheckbox(String label, bool value) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Checkbox(value: value, onChanged: null),
+        Text(label),
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("Users List")),
+      appBar: AppBar(
+        backgroundColor: Colors.blueAccent,
+        foregroundColor: Colors.white,
+        title: const Text("Users List"),
+        elevation: 0,
+        ),
+      backgroundColor: Colors.white, // Set background color here
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : ListView.builder(
               itemCount: _users.length,
               itemBuilder: (context, index) {
                 final user = _users[index];
-                return ListTile(
-                  title: Text(user['firstName'] ?? 'No Name'),
-                  subtitle: Text(user['phone'] ?? 'No Phone'),
-                  trailing: const Icon(Icons.edit),
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => NewUserDetailsScreen(phone: widget.phone,isAdmin: widget.isAdmin,userData: user),
-                      ),
-                    );
-                  },
+                return Card(
+                  elevation: 3,
+                  margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                  child: ListTile(
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                    title: Text(
+                      "${user['firstName'] ?? ''} ${user['lastName'] ?? ''}",
+                      style: const TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                    subtitle: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text("Phone: ${user['phone'] ?? ''}"),
+                        Text("Email: ${user['email'] ?? ''}"),
+                        Text("Customer Type: ${user['customerType'] ?? ''}"),
+                        Text("Margin: ${user['margin']?.toString() ?? ''}"),
+                        Text("Status: ${user['isActive'] ?? ''}"),
+                        const SizedBox(height: 6),
+                        Wrap(
+                          spacing: 10,
+                          runSpacing: 4,
+                          children: [
+                            _buildBoolCheckbox("PayIn", user['payIn'] == true),
+                            _buildBoolCheckbox("PayOut", user['payOut'] == true),
+                            _buildBoolCheckbox("CCBill", user['ccBill'] == true),
+                            _buildBoolCheckbox("Aadhar", user['isAadherVerified'] == true),
+                          ],
+                        ),
+                      ],
+                    ),
+                    trailing: const Icon(Icons.edit),
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => NewUserDetailsScreen(
+                            phone: widget.phone,
+                            isAdmin: widget.isAdmin,
+                            userData: user,
+                          ),
+                        ),
+                      );
+                    },
+                  ),
                 );
               },
             ),

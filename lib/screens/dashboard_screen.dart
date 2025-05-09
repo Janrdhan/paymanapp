@@ -24,7 +24,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
   int _currentPage = 0;
   late final Timer _carouselTimer;
   Timer? _inactivityTimer;
-  bool _isLoading = false;
   bool _payIn = false;
   bool _ccBill = false;
 
@@ -57,7 +56,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   Future<void> GetUserDetails() async {
-    setState(() => _isLoading = true);
     try {
       final url = Uri.parse('${ApiHandler.baseUri1}/Users/Login');
       final response = await http.post(
@@ -80,7 +78,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
         SnackBar(content: Text("Error loading data: $e")),
       );
     } finally {
-      setState(() => _isLoading = false);
     }
   }
 
@@ -150,7 +147,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         child: Scaffold(
           backgroundColor: Colors.white,
           appBar: AppBar(
-            backgroundColor: Colors.blue,
+            backgroundColor: Colors.blueAccent,
             title: const Text('PAYMAN', style: TextStyle(color: Colors.white)),
             actions: [
               IconButton(

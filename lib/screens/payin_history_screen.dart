@@ -81,6 +81,8 @@ class _PayInHistoryScreenState extends State<PayInHistoryScreen> {
       appBar: AppBar(
         title: const Text("PayIn History"),
         backgroundColor: Colors.blueAccent,
+        foregroundColor: Colors.white,
+        elevation: 0,
         actions: [
           IconButton(
             icon: const Icon(Icons.date_range),

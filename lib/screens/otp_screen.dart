@@ -103,8 +103,8 @@ class _OTPVerificationScreenState extends State<OTPVerificationScreen> {
       backgroundColor: Colors.white,
       appBar: AppBar(
         title: const Text('Verify your mobile number'),
-        backgroundColor: Colors.white,
-        foregroundColor: Colors.black,
+        backgroundColor: Colors.blueAccent,
+        foregroundColor: Colors.white,
         elevation: 1,
       ),
       body: Center(

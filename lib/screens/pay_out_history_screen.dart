@@ -76,6 +76,8 @@ class _PayOutHistoryScreenState extends State<PayOutHistoryScreen> {
       appBar: AppBar(
         title: const Text('PayOut History'),
         backgroundColor: Colors.blueAccent,
+        foregroundColor: Colors.white,
+        elevation: 0,
         actions: [
           IconButton(
             icon: const Icon(Icons.date_range),
