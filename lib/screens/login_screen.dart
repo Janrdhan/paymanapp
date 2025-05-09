@@ -126,9 +126,9 @@ class _LoginScreenState extends State<LoginScreen> {
       backgroundColor: Colors.white, // White background
       appBar: AppBar(
         title: const Text("Login"),
-        backgroundColor: Colors.white,
-        foregroundColor: Colors.black,
-        elevation: 1,
+        backgroundColor: Colors.blueAccent,
+        foregroundColor: Colors.white,
+        elevation: 0,
         actions: [
           IconButton(
             icon: const Icon(Icons.help_outline),

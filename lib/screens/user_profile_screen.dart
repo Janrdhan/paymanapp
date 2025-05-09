@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:paymanapp/screens/aadhar_list_screen.dart';
 import 'package:paymanapp/screens/aadhar_verification_screen.dart';
 import 'package:paymanapp/screens/beneficiary_list_screen.dart';
 import 'package:paymanapp/screens/login_screen.dart';
@@ -208,6 +209,14 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                         ),
                       );
                     }),
+                        _buildListTile(Icons.receipt_long, 'Aadhar List', () {
+  Navigator.push(
+    context,
+    MaterialPageRoute(
+      builder: (_) => AadharListScreen(phone: widget.phone),
+    ),
+  );
+}),
                 ],
                 _buildListTile(Icons.receipt_long, 'PayIn History', () {
   Navigator.push(
@@ -225,6 +234,7 @@ _buildListTile(Icons.receipt_long, 'PayOut History', () {
     ),
   );
 }),
+            
                 _buildListTile(Icons.receipt_long, 'Bill notifications'),
                 _buildListTile(Icons.tune, 'Permissions'),
                 _buildListTile(Icons.color_lens, 'Theme'),
