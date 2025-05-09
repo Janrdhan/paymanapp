@@ -50,7 +50,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
       if (response.statusCode == 200 && data['exists'] == true) {
         SharedPreferences prefs = await SharedPreferences.getInstance();
-         print("login phone ${phone}");
+         print("login phone $phone");
         await prefs.setString("phone", phone);
 
         final userDetails = data['userDetails'];

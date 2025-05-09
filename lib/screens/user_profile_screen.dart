@@ -4,6 +4,8 @@ import 'package:http/http.dart' as http;
 import 'package:paymanapp/screens/aadhar_verification_screen.dart';
 import 'package:paymanapp/screens/beneficiary_list_screen.dart';
 import 'package:paymanapp/screens/login_screen.dart';
+import 'package:paymanapp/screens/pay_out_history_screen.dart';
+import 'package:paymanapp/screens/payin_history_screen.dart';
 import 'package:paymanapp/screens/user_details_screen.dart';
 import 'package:paymanapp/screens/users_listscreen.dart';
 import 'package:paymanapp/widgets/api_handler.dart';
@@ -27,6 +29,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
   bool _isAdmin = false;
   bool _isLoading = false;
   String _CustomerType = "N/A";
+  bool _payOut = false;
 
   @override
   void initState() {
@@ -62,6 +65,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
           _aadharVerified = data['aadharverified'] == true;
           _isAdmin = data['isadmin'] == true;
           _CustomerType = data['customerType'];
+          _payOut = data['isPayOut'];
         });
       }
     } catch (e) {
@@ -117,7 +121,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                           ],
                         ),
                       ),
-                      if (_aadharVerified)
+                      if (_aadharVerified && _payOut)
                         TextButton(
                           onPressed: () {
                             Navigator.of(context).push(
@@ -205,6 +209,22 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                       );
                     }),
                 ],
+                _buildListTile(Icons.receipt_long, 'PayIn History', () {
+  Navigator.push(
+    context,
+    MaterialPageRoute(
+      builder: (_) => PayInHistoryScreen(phone: widget.phone),
+    ),
+  );
+}),
+_buildListTile(Icons.receipt_long, 'PayOut History', () {
+  Navigator.push(
+    context,
+    MaterialPageRoute(
+      builder: (_) => PayOutHistoryScreen(phone: widget.phone),
+    ),
+  );
+}),
                 _buildListTile(Icons.receipt_long, 'Bill notifications'),
                 _buildListTile(Icons.tune, 'Permissions'),
                 _buildListTile(Icons.color_lens, 'Theme'),

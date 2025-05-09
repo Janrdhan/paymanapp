@@ -114,7 +114,7 @@ class _AadharVerificationScreenState extends State<AadharVerificationScreen> {
     setState(() => _isLoading = true);
 
     try {
-      print("Response refid: ${_refId}");
+      print("Response refid: $_refId");
       final url = Uri.parse('${ApiHandler.baseUri}/Auth/VerifyAdharOTP'); // Replace with actual API URL
       final response = await http.post(
         url,

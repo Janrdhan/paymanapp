@@ -101,10 +101,6 @@ class _CreditCardBillersScreenState extends State<CreditCardBillersScreen> {
         print("Parsed data: $data");
 
         setState(() {
-          _availableAmount = data["AvailableAmount"]?.toString() ?? "0.00";
-          _instantPayBalance = data["InstantPayBalance"]?.toString() ?? "0.00";
-          debugger();
-
           if (data.containsKey("billers") && data["billers"] is List) {
             print("Parsed data: $data");
             _billers = (data["billers"] as List)

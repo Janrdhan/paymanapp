@@ -26,7 +26,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
   String _paymentResponse = 'No payment response yet'; // ✅ Added missing variable
 
   Future<void> initiatePayment() async {
-    String? accessKey = null;//await _paymentService.getAccessKey();
+    String? accessKey;//await _paymentService.getAccessKey();
     if (accessKey != null) {
       print("🛠 Access Key: $accessKey");
 

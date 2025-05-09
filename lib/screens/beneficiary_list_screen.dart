@@ -8,7 +8,13 @@ class BeneficiaryListScreen extends StatefulWidget {
   final String phone;
   final String userWalletAmount;
   final String pineLabsAmount;
-  const BeneficiaryListScreen({super.key, required this.phone, required this.userWalletAmount, required this.pineLabsAmount});
+
+  const BeneficiaryListScreen({
+    super.key,
+    required this.phone,
+    required this.userWalletAmount,
+    required this.pineLabsAmount,
+  });
 
   @override
   State<BeneficiaryListScreen> createState() => _BeneficiaryListScreenState();
@@ -82,7 +88,7 @@ class _BeneficiaryListScreenState extends State<BeneficiaryListScreen> {
   }
 
   void _showAddBeneficiaryDialog() {
-    final _formKey = GlobalKey<FormState>();
+    final formKey = GlobalKey<FormState>();
     final mobileController = TextEditingController();
     final nameController = TextEditingController();
     final accountController = TextEditingController();
@@ -104,7 +110,7 @@ class _BeneficiaryListScreenState extends State<BeneficiaryListScreen> {
         ),
         content: SingleChildScrollView(
           child: Form(
-            key: _formKey,
+            key: formKey,
             child: Column(
               children: [
                 TextFormField(
@@ -149,7 +155,7 @@ class _BeneficiaryListScreenState extends State<BeneficiaryListScreen> {
         actions: [
           ElevatedButton(
             onPressed: () async {
-              if (_formKey.currentState!.validate()) {
+              if (formKey.currentState!.validate()) {
                 final response = await http.post(
                   Uri.parse("$baseUrl/AddBeneficiary"),
                   headers: {"Content-Type": "application/json"},
@@ -375,13 +381,20 @@ class _BeneficiaryListScreenState extends State<BeneficiaryListScreen> {
               children: [
                 Padding(
                   padding: const EdgeInsets.all(12),
-                  child: TextField(
-                    controller: _searchController,
-                    decoration: const InputDecoration(
-                      hintText: "Search...",
-                      prefixIcon: Icon(Icons.search),
-                      border: OutlineInputBorder(),
-                    ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text("Wallet Balance: ₹${widget.userWalletAmount}", style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                      const SizedBox(height: 8),
+                      TextField(
+                        controller: _searchController,
+                        decoration: const InputDecoration(
+                          hintText: "Search...",
+                          prefixIcon: Icon(Icons.search),
+                          border: OutlineInputBorder(),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
                 Expanded(
@@ -416,12 +429,12 @@ class _BeneficiaryListScreenState extends State<BeneficiaryListScreen> {
                               Text("Account Number: ${beneficiary['accountNumber']}"),
                               Text("IFSC Code: ${beneficiary['ifscCode']}"),
                               Text(
-  "Status: ${isVerified ? 'Verified' : 'Not Verified'}",
-  style: TextStyle(
-    color: isVerified ? Colors.green : Colors.red,
-    fontWeight: FontWeight.bold,
-  ),
-),
+                                "Status: ${isVerified ? 'Verified' : 'Not Verified'}",
+                                style: TextStyle(
+                                  color: isVerified ? Colors.green : Colors.red,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
                               const SizedBox(height: 8),
                               TextField(
                                 controller: controller,
@@ -460,11 +473,11 @@ class _BeneficiaryListScreenState extends State<BeneficiaryListScreen> {
                                             final pineLabsAmount = double.tryParse(widget.pineLabsAmount);
 
                                             if (enteredAmount == null || enteredAmount < 100 || enteredAmount > 200000) {
-                                                ScaffoldMessenger.of(context).showSnackBar(
-                                               const SnackBar(content: Text("Enter an amount between ₹100 and ₹200,000")),
-                                               );
-                                               return;
-                                                }
+                                              ScaffoldMessenger.of(context).showSnackBar(
+                                                const SnackBar(content: Text("Enter an amount between ₹100 and ₹200,000")),
+                                              );
+                                              return;
+                                            }
 
                                             if (userWalletAmount == null || userWalletAmount < enteredAmount) {
                                               ScaffoldMessenger.of(context).showSnackBar(

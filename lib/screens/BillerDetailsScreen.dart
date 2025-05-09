@@ -4,15 +4,21 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:paymanapp/screens/bank_list.dart';
 import 'package:paymanapp/screens/dashboard_screen.dart';
-import 'package:paymanapp/widgets/api_handler.dart'; // Make sure to import your dashboard
+import 'package:paymanapp/widgets/api_handler.dart';
 
 class BillerDetailsScreen extends StatefulWidget {
   final Biller biller;
-   final String phone;
-   final String userWalletAmount;
+  final String phone;
+  final String userWalletAmount;
   final String instantPaysAmount;
 
-  const BillerDetailsScreen({super.key,required this.phone, required this.biller,required this.userWalletAmount, required this.instantPaysAmount});
+  const BillerDetailsScreen({
+    super.key,
+    required this.phone,
+    required this.biller,
+    required this.userWalletAmount,
+    required this.instantPaysAmount,
+  });
 
   @override
   State<BillerDetailsScreen> createState() => _BillerDetailsScreenState();
@@ -45,7 +51,6 @@ class _BillerDetailsScreenState extends State<BillerDetailsScreen> {
 
     try {
       final url = Uri.parse('${ApiHandler.baseUri}/CCBill/FetchCreditCardBill');
-
       final response = await http.post(
         url,
         headers: {'Content-Type': 'application/json'},
@@ -106,34 +111,36 @@ class _BillerDetailsScreenState extends State<BillerDetailsScreen> {
       _errorMessage = null;
     });
 
-      final enteredAmount = double.tryParse(amountController.text.trim());
-                                            final userWalletAmount = double.tryParse(widget.userWalletAmount);
-                                            final instantPaysAmount = double.tryParse(widget.instantPaysAmount);
+    final enteredAmount = double.tryParse(amountController.text.trim());
+    final userWalletAmount = double.tryParse(widget.userWalletAmount);
+    final instantPaysAmount = double.tryParse(widget.instantPaysAmount);
 
-                                            if (enteredAmount == null || enteredAmount <= 100) {
-                                              ScaffoldMessenger.of(context).showSnackBar(
-                                                const SnackBar(content: Text("Enter a valid amount")),
-                                              );
-                                              return;
-                                            }
+    if (enteredAmount == null || enteredAmount <= 100) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Enter a valid amount")),
+      );
+      setState(() => _isLoading = false);
+      return;
+    }
 
-                                            if (userWalletAmount == null || userWalletAmount < enteredAmount) {
-                                              ScaffoldMessenger.of(context).showSnackBar(
-                                                const SnackBar(content: Text("Insufficient wallet balance")),
-                                              );
-                                              return;
-                                            }
+    if (userWalletAmount == null || userWalletAmount < enteredAmount) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Insufficient wallet balance")),
+      );
+      setState(() => _isLoading = false);
+      return;
+    }
 
-                                            if (instantPaysAmount == null || instantPaysAmount < enteredAmount) {
-                                              ScaffoldMessenger.of(context).showSnackBar(
-                                                const SnackBar(content: Text("Service not available")),
-                                              );
-                                              return;
-                                            }
+    if (instantPaysAmount == null || instantPaysAmount < enteredAmount) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Service not available")),
+      );
+      setState(() => _isLoading = false);
+      return;
+    }
 
     try {
       final url = Uri.parse('${ApiHandler.baseUri}/CCBill/ProcessPayment');
-
       final response = await http.post(
         url,
         headers: {'Content-Type': 'application/json'},
@@ -161,9 +168,10 @@ class _BillerDetailsScreenState extends State<BillerDetailsScreen> {
             actions: [
               TextButton(
                 onPressed: () {
-                  Navigator.of(ctx).pop(); // Close dialog
+                  Navigator.of(ctx).pop();
                   Navigator.of(context).pushReplacement(
-                    MaterialPageRoute(builder: (_) =>  DashboardScreen(phone: widget.phone)),
+                    MaterialPageRoute(
+                        builder: (_) => DashboardScreen(phone: widget.phone)),
                   );
                 },
                 child: const Text("OK"),
@@ -208,6 +216,36 @@ class _BillerDetailsScreenState extends State<BillerDetailsScreen> {
                 key: _formKey,
                 child: ListView(
                   children: [
+                    // Wallet Balance Card
+                    Card(
+                      color: Colors.blue.shade50,
+                      margin: const EdgeInsets.only(bottom: 16),
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12)),
+                      child: Padding(
+                        padding: const EdgeInsets.all(16),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text("Wallet Balance",
+                                style: TextStyle(
+                                    fontWeight: FontWeight.bold, fontSize: 16)),
+                            const SizedBox(height: 8),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                const Text("User Wallet:",
+                                    style: TextStyle(fontSize: 14)),
+                                Text("₹${widget.userWalletAmount}",
+                                    style: const TextStyle(
+                                        fontWeight: FontWeight.bold)),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+
                     Row(
                       children: [
                         widget.biller.iconUrl.isNotEmpty

@@ -19,7 +19,7 @@ class _OTPVerificationScreenState extends State<OTPVerificationScreen> {
   final TextEditingController _otpController = TextEditingController();
   bool _isLoading = false;
   bool _isOtpVisible = false;
-  bool _isResending = false;
+  final bool _isResending = false;
 
   @override
   void initState() {
