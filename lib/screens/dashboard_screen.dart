@@ -147,6 +147,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         child: Scaffold(
           backgroundColor: Colors.white,
           appBar: AppBar(
+            automaticallyImplyLeading: false,
             backgroundColor: Colors.blueAccent,
             title: const Text('PAYMAN', style: TextStyle(color: Colors.white)),
             actions: [

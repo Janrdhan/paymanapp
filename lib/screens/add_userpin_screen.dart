@@ -22,9 +22,9 @@ class _AddUserPinScreenState extends State<AddUserPinScreen> {
     final pin = _pinController.text.trim();
     final confirmPin = _confirmPinController.text.trim();
 
-    if (pin.length != 4 || pin != confirmPin) {
+    if (pin.length != 6 || pin != confirmPin) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("PINs must match and be 4 digits")),
+        SnackBar(content: Text("PINs must match and be 6 digits")),
       );
       return;
     }
@@ -72,14 +72,14 @@ class _AddUserPinScreenState extends State<AddUserPinScreen> {
               controller: _pinController,
               keyboardType: TextInputType.number,
               obscureText: true,
-              maxLength: 4,
+              maxLength: 6,
               decoration: InputDecoration(labelText: "New PIN"),
             ),
             TextField(
               controller: _confirmPinController,
               keyboardType: TextInputType.number,
               obscureText: true,
-              maxLength: 4,
+              maxLength: 6,
               decoration: InputDecoration(labelText: "Confirm PIN"),
             ),
             const SizedBox(height: 20),

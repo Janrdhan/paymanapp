@@ -4,6 +4,7 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:paymanapp/screens/bank_list.dart';
 import 'package:paymanapp/screens/dashboard_screen.dart';
+import 'package:paymanapp/screens/inactivity_wrapper.dart';
 import 'package:paymanapp/widgets/api_handler.dart';
 
 class BillerDetailsScreen extends StatefulWidget {
@@ -197,7 +198,8 @@ class _BillerDetailsScreenState extends State<BillerDetailsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return InactivityWrapper(
+    child : Scaffold(
       appBar: AppBar(
         title: const Text('Credit Card'),
         leading: const BackButton(),
@@ -343,6 +345,7 @@ class _BillerDetailsScreenState extends State<BillerDetailsScreen> {
                 ),
               ),
             ),
+    ),
     );
   }
 

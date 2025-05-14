@@ -3,7 +3,9 @@ import 'package:easebuzz_flutter/easebuzz_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:paymanapp/screens/dashboard_screen.dart';
+import 'package:paymanapp/screens/inactivity_wrapper.dart';
 import 'package:paymanapp/screens/payment_service.dart';
+//import 'package:paymanapp/widgets/inactivity_wrapper.dart'; // Ensure this import is correct
 
 class PayInScreen extends StatefulWidget {
   final String phone;
@@ -124,80 +126,82 @@ class _PayInScreenState extends State<PayInScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('Pay In')),
-      backgroundColor: Colors.white, // ✅ Force background to white
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Form(
-          key: _formKey,
-          child: ListView(
-            children: [
-              TextFormField(
-                controller: cardController,
-                decoration: const InputDecoration(
-                  labelText: 'Card Number',
-                  border: OutlineInputBorder(),
+    return InactivityWrapper(
+      child: Scaffold(
+        appBar: AppBar(title: const Text('Pay In')),
+        backgroundColor: Colors.white,
+        body: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Form(
+            key: _formKey,
+            child: ListView(
+              children: [
+                TextFormField(
+                  controller: cardController,
+                  decoration: const InputDecoration(
+                    labelText: 'Card Number',
+                    border: OutlineInputBorder(),
+                  ),
+                  keyboardType: TextInputType.number,
+                  inputFormatters: [
+                    FilteringTextInputFormatter.digitsOnly,
+                    LengthLimitingTextInputFormatter(16),
+                  ],
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Card number is required';
+                    }
+                    if (value.length != 16) {
+                      return 'Card number must be 16 digits';
+                    }
+                    return null;
+                  },
                 ),
-                keyboardType: TextInputType.number,
-                inputFormatters: [
-                  FilteringTextInputFormatter.digitsOnly,
-                  LengthLimitingTextInputFormatter(16),
-                ],
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Card number is required';
-                  }
-                  if (value.length != 16) {
-                    return 'Card number must be 16 digits';
-                  }
-                  return null;
-                },
-              ),
-              const SizedBox(height: 16),
-              TextFormField(
-                controller: amountController,
-                decoration: const InputDecoration(
-                  labelText: 'Amount',
-                  border: OutlineInputBorder(),
+                const SizedBox(height: 16),
+                TextFormField(
+                  controller: amountController,
+                  decoration: const InputDecoration(
+                    labelText: 'Amount',
+                    border: OutlineInputBorder(),
+                  ),
+                  keyboardType: TextInputType.number,
+                  inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Amount is required';
+                    }
+                    if (int.tryParse(value) == null || int.parse(value) <= 0) {
+                      return 'Enter a valid amount';
+                    }
+                    return null;
+                  },
                 ),
-                keyboardType: TextInputType.number,
-                inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Amount is required';
-                  }
-                  if (int.tryParse(value) == null || int.parse(value) <= 0) {
-                    return 'Enter a valid amount';
-                  }
-                  return null;
-                },
-              ),
-              const SizedBox(height: 16),
-              const Text('Gateway Type', style: TextStyle(fontWeight: FontWeight.bold)),
-              DropdownButtonFormField<String>(
-                value: selectedGateway,
-                hint: const Text('Select Gateway'),
-                isExpanded: true,
-                decoration: const InputDecoration(border: OutlineInputBorder()),
-                items: ['Easebuzz', 'Razorpay', 'Layra'].map((gateway) {
-                  return DropdownMenuItem<String>(
-                    value: gateway,
-                    child: Text(gateway),
-                  );
-                }).toList(),
-                validator: (value) =>
-                    value == null || value.isEmpty ? 'Please select a gateway' : null,
-                onChanged: (value) => setState(() => selectedGateway = value),
-              ),
-              const SizedBox(height: 24),
-              Center(
-                child: ElevatedButton(
-                  onPressed: initiatePayment,
-                  child: const Text('Proceed to Pay'),
+                const SizedBox(height: 16),
+                const Text('Gateway Type', style: TextStyle(fontWeight: FontWeight.bold)),
+                DropdownButtonFormField<String>(
+                  value: selectedGateway,
+                  hint: const Text('Select Gateway'),
+                  isExpanded: true,
+                  decoration: const InputDecoration(border: OutlineInputBorder()),
+                  items: ['Easebuzz', 'Razorpay', 'Layra'].map((gateway) {
+                    return DropdownMenuItem<String>(
+                      value: gateway,
+                      child: Text(gateway),
+                    );
+                  }).toList(),
+                  validator: (value) =>
+                      value == null || value.isEmpty ? 'Please select a gateway' : null,
+                  onChanged: (value) => setState(() => selectedGateway = value),
                 ),
-              ),
-            ],
+                const SizedBox(height: 24),
+                Center(
+                  child: ElevatedButton(
+                    onPressed: initiatePayment,
+                    child: const Text('Proceed to Pay'),
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),

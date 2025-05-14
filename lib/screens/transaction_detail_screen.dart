@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:intl/intl.dart';
 import 'package:paymanapp/widgets/api_handler.dart';
 
 class TransactionDetailScreen extends StatefulWidget {
@@ -116,7 +117,7 @@ class _TransactionDetailScreenState extends State<TransactionDetailScreen> {
                         _detailRow("Transaction ID", transaction!['transactionId']),
                         _detailRow("Debited From", transaction!['account']),
                         _detailRow("Type", transaction!['type']),
-                        _detailRow("Date", transaction!['date']),
+                        _detailRow("Date", DateFormat('yyyy-MM-dd hh:mm a').format(DateTime.parse(transaction!['date']))),
                         _detailRow("Status", transaction!['status']),
                         const Spacer(),
                         Center(

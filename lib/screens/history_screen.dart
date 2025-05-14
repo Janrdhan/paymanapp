@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:intl/intl.dart';
 import 'package:paymanapp/screens/transaction_detail_screen.dart';
 import 'dart:convert';
 
@@ -59,7 +60,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                       child: ListTile(
                         leading:  Icon(Icons.receipt),
                         title: Text('₹${item['amount']} - ${item['mode']}'),
-                        subtitle: Text('Date: ${item['created']}'),
+                        subtitle: Text('Date: ${DateFormat('yyyy-MM-dd hh:mm a').format(DateTime.parse(item['created']))}'),
                         trailing: Text(item['status'] == true ? "Sucess": "Failed"),
                         onTap: () {
     Navigator.push(

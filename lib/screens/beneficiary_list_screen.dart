@@ -1,6 +1,8 @@
 import 'dart:convert';
+import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:paymanapp/screens/inactivity_wrapper.dart';
 import 'package:paymanapp/screens/user_profile_screen.dart';
 import 'package:paymanapp/widgets/api_handler.dart';
 
@@ -341,33 +343,39 @@ class _BeneficiaryListScreenState extends State<BeneficiaryListScreen> {
     }
   }
 
-  void showResponseDialog(String message, {bool success = false}) {
-    showDialog(
-      context: context,
-      builder: (_) => AlertDialog(
-        title: const Text("Payment Response"),
-        content: SingleChildScrollView(child: Text(message)),
-        actions: [
-          TextButton(
-            onPressed: () {
-              Navigator.pop(context);
-              if (success) {
-                Navigator.pushReplacement(
-                  context,
-                  MaterialPageRoute(builder: (context) => UserProfileScreen(phone: widget.phone)),
-                );
-              }
-            },
-            child: const Text("OK"),
-          ),
-        ],
-      ),
-    );
+  void showResponseDialog(String message, {bool success = false}) async {
+  if (success) {
+    final player = AudioPlayer();
+    await player.play(AssetSource('sounds/success-68578.mp3'));
   }
+
+  showDialog(
+    context: context,
+    builder: (_) => AlertDialog(
+      title: const Text("Payment Response"),
+      content: SingleChildScrollView(child: Text(message)),
+      actions: [
+        TextButton(
+          onPressed: () {
+            Navigator.pop(context);
+            if (success) {
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(builder: (context) => UserProfileScreen(phone: widget.phone)),
+              );
+            }
+          },
+          child: const Text("OK"),
+        ),
+      ],
+    ),
+  );
+}
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return InactivityWrapper(
+     child:Scaffold(
       appBar: AppBar(
         title: const Text("Beneficiary List"),
         backgroundColor: Colors.blueAccent,
@@ -523,6 +531,8 @@ class _BeneficiaryListScreenState extends State<BeneficiaryListScreen> {
                 ),
               ],
             ),
+     ),
     );
+    
   }
 }
