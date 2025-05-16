@@ -80,7 +80,7 @@ class _PayInHistoryScreenState extends State<PayInHistoryScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text("PayIn History"),
-        backgroundColor: Colors.blueAccent,
+        backgroundColor: Colors.blue.shade900,
         foregroundColor: Colors.white,
         elevation: 0,
         actions: [

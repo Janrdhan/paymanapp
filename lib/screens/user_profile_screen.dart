@@ -94,7 +94,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
-        backgroundColor: Colors.blueAccent,
+        backgroundColor: Colors.blue.shade900,
         foregroundColor: Colors.white,
         title: const Text('Profile'),
         elevation: 0,
@@ -199,25 +199,25 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                 _buildButtonRow(),
                 _sectionHeader("PREFERENCES"),
                 _buildListTile(Icons.language, 'Languages'),
-                ...[
-                  if (_isAdmin)
-                    _buildListTile(Icons.group, 'Users List', () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => UsersListScreen(phone: widget.phone, isAdmin: _isAdmin),
-                        ),
-                      );
-                    }),
-                        _buildListTile(Icons.receipt_long, 'Aadhar List', () {
-  Navigator.push(
-    context,
-    MaterialPageRoute(
-      builder: (_) => AadharListScreen(phone: widget.phone),
-    ),
-  );
-}),
-                ],
+                if (_isAdmin) ...[
+  _buildListTile(Icons.group, 'Users List', () {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => UsersListScreen(phone: widget.phone, isAdmin: _isAdmin),
+      ),
+    );
+  }),
+  _buildListTile(Icons.receipt_long, 'Aadhar List', () {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => AadharListScreen(phone: widget.phone),
+      ),
+    );
+  }),
+],
+
                 _buildListTile(Icons.receipt_long, 'PayIn History', () {
   Navigator.push(
     context,

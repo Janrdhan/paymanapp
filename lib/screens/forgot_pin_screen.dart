@@ -146,8 +146,8 @@ class _ForgotPinScreenState extends State<ForgotPinScreen> {
       backgroundColor: Colors.white,
       appBar: AppBar(
         title: const Text("Forgot PIN"),
-        backgroundColor: Colors.white,
-        foregroundColor: Colors.black,
+        backgroundColor: Colors.blue.shade900,
+        foregroundColor: Colors.white,
         elevation: 1,
       ),
       body: Padding(

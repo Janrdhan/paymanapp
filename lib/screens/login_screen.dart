@@ -126,7 +126,7 @@ class _LoginScreenState extends State<LoginScreen> {
       backgroundColor: Colors.white, // White background
       appBar: AppBar(
         title: const Text("Login"),
-        backgroundColor: Colors.blueAccent,
+        backgroundColor: Colors.blue.shade900,
         foregroundColor: Colors.white,
         elevation: 0,
         actions: [
@@ -145,7 +145,7 @@ class _LoginScreenState extends State<LoginScreen> {
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 const SizedBox(height: 50),
-                Image.asset("assets/images/homelogo.png", height: 80),
+                Image.asset("assets/images/PaymanFintech.png", height: 80),
                 const SizedBox(height: 20),
                 const Text(
                   "Log in to Payman",

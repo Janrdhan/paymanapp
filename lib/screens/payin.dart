@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:paymanapp/screens/dashboard_screen.dart';
 import 'package:paymanapp/screens/inactivity_wrapper.dart';
 import 'package:paymanapp/screens/payment_service.dart';
+import 'package:paymanapp/screens/payment_success_screen.dart';
 //import 'package:paymanapp/widgets/inactivity_wrapper.dart'; // Ensure this import is correct
 
 class PayInScreen extends StatefulWidget {
@@ -61,20 +62,23 @@ class _PayInScreenState extends State<PayInScreen> {
             final msgList = paymentData["msg"];
 
             if (msgList is List && msgList.isNotEmpty) {
-              final firstMsg = msgList[0];
+              //final firstMsg = msgList[0];
               final status = paymentData["status"] ?? "Unknown";
-              final txnId = firstMsg["txnId"] ?? "N/A";
-              final amount = firstMsg["amount"] ?? "N/A";
+              //final txnId = firstMsg["txnId"] ?? "N/A";
+              //final amount = firstMsg["amount"] ?? "N/A";
 
-              final now = DateTime.now();
-              String formattedDate =
-                  "${now.day}/${now.month}/${now.year} ${now.hour}:${now.minute}";
+              //final now = DateTime.now();
+             // String formattedDate = "${now.day}/${now.month}/${now.year} ${now.hour}:${now.minute}";
 
               if (status == true) {
-                showResponseDialog(
-                  "✅ Payment Details:\nTxn ID: $txnId\nAmount: ₹$amount\nStatus: Success\nDate: $formattedDate",
-                  success: true,
-                );
+                Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => PaymentSuccessScreen(phone: widget.phone)),
+      );
+                // showResponseDialog(
+                //   "✅ Payment Details:\nTxn ID: $txnId\nAmount: ₹$amount\nStatus: Success\nDate: $formattedDate",
+                //   success: true,
+                // );
               } else {
                 showResponseDialog("❌ Payment failed or status is false.");
               }

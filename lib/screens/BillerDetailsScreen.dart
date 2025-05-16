@@ -5,6 +5,7 @@ import 'dart:convert';
 import 'package:paymanapp/screens/bank_list.dart';
 import 'package:paymanapp/screens/dashboard_screen.dart';
 import 'package:paymanapp/screens/inactivity_wrapper.dart';
+import 'package:paymanapp/screens/payment_success_screen.dart';
 import 'package:paymanapp/widgets/api_handler.dart';
 
 class BillerDetailsScreen extends StatefulWidget {
@@ -161,25 +162,29 @@ class _BillerDetailsScreenState extends State<BillerDetailsScreen> {
       final data = jsonDecode(response.body);
 
       if (response.statusCode == 200 && data['success'] == true) {
-        showDialog(
-          context: context,
-          builder: (ctx) => AlertDialog(
-            title: const Text("Success"),
-            content: Text(data['message'] ?? 'Payment processed successfully'),
-            actions: [
-              TextButton(
-                onPressed: () {
-                  Navigator.of(ctx).pop();
-                  Navigator.of(context).pushReplacement(
-                    MaterialPageRoute(
-                        builder: (_) => DashboardScreen(phone: widget.phone)),
-                  );
-                },
-                child: const Text("OK"),
-              ),
-            ],
-          ),
-        );
+        Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => PaymentSuccessScreen(phone: widget.phone)),
+      );
+        // showDialog(
+        //   context: context,
+        //   builder: (ctx) => AlertDialog(
+        //     title: const Text("Success"),
+        //     content: Text(data['message'] ?? 'Payment processed successfully'),
+        //     actions: [
+        //       TextButton(
+        //         onPressed: () {
+        //           Navigator.of(ctx).pop();
+        //           Navigator.of(context).pushReplacement(
+        //             MaterialPageRoute(
+        //                 builder: (_) => DashboardScreen(phone: widget.phone)),
+        //           );
+        //         },
+        //         child: const Text("OK"),
+        //       ),
+        //     ],
+        //   ),
+        // );
       } else {
         setState(() {
           _errorMessage = data['message'] ?? 'Payment failed';

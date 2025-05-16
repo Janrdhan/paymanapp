@@ -45,7 +45,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Transaction History'),
-        backgroundColor: Colors.blueAccent,
+        backgroundColor: Colors.blue.shade900,
       ),
       body: _loading
           ? const Center(child: CircularProgressIndicator())
@@ -55,21 +55,44 @@ class _HistoryScreenState extends State<HistoryScreen> {
                   itemCount: _history.length,
                   itemBuilder: (context, index) {
                     final item = _history[index];
+                    final isPayIn = item['mode'] == 'PayIn';
+                    final modeColor = isPayIn ? Colors.green : Colors.red;
+
                     return Card(
                       margin: const EdgeInsets.all(10),
                       child: ListTile(
-                        leading:  Icon(Icons.receipt),
-                        title: Text('₹${item['amount']} - ${item['mode']}'),
-                        subtitle: Text('Date: ${DateFormat('yyyy-MM-dd hh:mm a').format(DateTime.parse(item['created']))}'),
-                        trailing: Text(item['status'] == true ? "Sucess": "Failed"),
+                        leading: Icon(
+                          Icons.account_balance_wallet,
+                          color: modeColor,
+                        ),
+                        title: Text(
+                          '₹${item['amount']} - ${item['mode']}',
+                          style: TextStyle(
+                            color: modeColor.shade800,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        subtitle: Text(
+                          'Date: ${DateFormat('yyyy-MM-dd hh:mm a').format(DateTime.parse(item['created']))}',
+                        ),
+                        trailing: Text(
+                          item['status'] == true ? "Success" : "Failed",
+                          style: TextStyle(
+                            color: item['status'] == true ? Colors.green : Colors.red,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
                         onTap: () {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (_) => TransactionDetailScreen(transactionId: item['txnId'],transactionMode: item['mode']),
-      ),
-    );
-  },
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => TransactionDetailScreen(
+                                transactionId: item['txnId'],
+                                transactionMode: item['mode'],
+                              ),
+                            ),
+                          );
+                        },
                       ),
                     );
                   },

@@ -33,7 +33,7 @@ class _InactivityWrapperState extends State<InactivityWrapper> {
 
   void _resetInactivityTimer() {
     _inactivityTimer?.cancel();
-    _inactivityTimer = Timer(const Duration(minutes: 1), _showInactivityDialog);
+    _inactivityTimer = Timer(const Duration(minutes: 5), _showInactivityDialog);
   }
 
   void _showInactivityDialog() async {
@@ -47,7 +47,7 @@ class _InactivityWrapperState extends State<InactivityWrapper> {
       barrierDismissible: false,
       builder: (context) => AlertDialog(
         title: const Text("Session Timeout"),
-        content: const Text("You’ve been inactive for 1 minute. Log out?"),
+        content: const Text("You’ve been inactive for 5 minute. Log out?"),
         actions: [
           TextButton(
             onPressed: () {

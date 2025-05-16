@@ -148,7 +148,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
           backgroundColor: Colors.white,
           appBar: AppBar(
             automaticallyImplyLeading: false,
-            backgroundColor: Colors.blueAccent,
+            backgroundColor: Colors.blue.shade700,
             title: const Text('PAYMAN', style: TextStyle(color: Colors.white)),
             actions: [
               IconButton(
@@ -311,10 +311,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       margin: const EdgeInsets.only(top: 4),
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
-                        color: Colors.purple.withOpacity(0.1),
+                        color: Colors.blue.withOpacity(0.1),
                       ),
                       padding: const EdgeInsets.all(12),
-                      child: Icon(icons[index], size: 26, color: Colors.purple),
+                      child: Icon(icons[index], size: 26, color: Colors.blue.shade900),
                     ),
                     const SizedBox(height: 6),
                     Text(
@@ -337,7 +337,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
       backgroundColor: Colors.white,
       currentIndex: _selectedIndex,
       onTap: _onItemTapped,
-      selectedItemColor: Colors.blueAccent,
+      selectedItemColor: Colors.blue.shade700,
       unselectedItemColor: Colors.grey,
       items: const [
         BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),

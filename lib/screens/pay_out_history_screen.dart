@@ -75,7 +75,7 @@ class _PayOutHistoryScreenState extends State<PayOutHistoryScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('PayOut History'),
-        backgroundColor: Colors.blueAccent,
+        backgroundColor: Colors.blue.shade900,
         foregroundColor: Colors.white,
         elevation: 0,
         actions: [

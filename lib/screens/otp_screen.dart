@@ -102,8 +102,8 @@ class _OTPVerificationScreenState extends State<OTPVerificationScreen> {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
-        title: const Text('Verify your mobile number'),
-        backgroundColor: Colors.blueAccent,
+        title: const Text('Verify PassCode'),
+        backgroundColor: Colors.blue.shade900,
         foregroundColor: Colors.white,
         elevation: 1,
       ),

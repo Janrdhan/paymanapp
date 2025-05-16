@@ -3,6 +3,7 @@ import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:paymanapp/screens/inactivity_wrapper.dart';
+import 'package:paymanapp/screens/payment_success_screen.dart';
 import 'package:paymanapp/screens/user_profile_screen.dart';
 import 'package:paymanapp/widgets/api_handler.dart';
 
@@ -328,13 +329,18 @@ class _BeneficiaryListScreenState extends State<BeneficiaryListScreen> {
 
       final data = jsonDecode(response.body);
       if (data['success'] == true) {
-        final orderRefNo = data["orderRefNo"] ?? "N/A";
-        final now = DateTime.now();
-        String formattedDate = "${now.day}/${now.month}/${now.year} ${now.hour}:${now.minute}";
-        showResponseDialog(
-          "✅ Payment Details:\nTxn ID: $orderRefNo\nAmount: ₹$amount\nStatus: Success\nDate: $formattedDate",
-          success: true,
-        );
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => PaymentSuccessScreen(phone: widget.phone)),
+      );
+
+        // final orderRefNo = data["orderRefNo"] ?? "N/A";
+        // final now = DateTime.now();
+        // String formattedDate = "${now.day}/${now.month}/${now.year} ${now.hour}:${now.minute}";
+        // showResponseDialog(
+        //   "✅ Payment Details:\nTxn ID: $orderRefNo\nAmount: ₹$amount\nStatus: Success\nDate: $formattedDate",
+        //   success: true,
+        // );
       } else {
         showResponseDialog("❌ Payment failed or status is false.", success: false);
       }
@@ -376,9 +382,11 @@ class _BeneficiaryListScreenState extends State<BeneficiaryListScreen> {
   Widget build(BuildContext context) {
     return InactivityWrapper(
      child:Scaffold(
+      backgroundColor: Colors.white, // White background
       appBar: AppBar(
         title: const Text("Beneficiary List"),
-        backgroundColor: Colors.blueAccent,
+        backgroundColor: Colors.blue.shade900,
+        foregroundColor: Colors.white,
         actions: [
           IconButton(icon: const Icon(Icons.add), onPressed: _showAddBeneficiaryDialog),
         ],

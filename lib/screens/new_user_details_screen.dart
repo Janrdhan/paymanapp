@@ -186,7 +186,7 @@ class _NewUserDetailsScreenState extends State<NewUserDetailsScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text(isEdit ? "Edit User" : "New User Details"),
-        backgroundColor: Colors.blueAccent,
+        backgroundColor: Colors.blue.shade900,
       ),
       body: Padding(
         padding: const EdgeInsets.all(16),
@@ -253,7 +253,7 @@ class _NewUserDetailsScreenState extends State<NewUserDetailsScreen> {
               ElevatedButton(
                 onPressed: _isSubmitting ? null : _submitForm,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.blueAccent,
+                  backgroundColor: Colors.blue.shade900,
                   padding: const EdgeInsets.symmetric(vertical: 16),
                 ),
                 child: _isSubmitting

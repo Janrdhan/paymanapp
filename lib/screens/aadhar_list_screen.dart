@@ -87,7 +87,7 @@ class _AadharListScreenState extends State<AadharListScreen> {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(title: const Text("Aadhar List"),
-      backgroundColor: Colors.blueAccent,
+      backgroundColor: Colors.blue.shade900,
       foregroundColor: Colors.white,
       elevation: 0,),
       body: _isLoading
