@@ -181,16 +181,6 @@ class _CreditCardBillersScreenState extends State<CreditCardBillersScreen> {
               ),
             ),
           ),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text("Available Balance: ₹$_availableAmount", style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-                Text("InstantPay Balance: ₹$_instantPayBalance", style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-              ],
-            ),
-          ),
          Expanded(
   child: _isLoading
       ? const Center(child: CircularProgressIndicator())

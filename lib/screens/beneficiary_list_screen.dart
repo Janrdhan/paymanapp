@@ -3,6 +3,7 @@ import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:paymanapp/screens/inactivity_wrapper.dart';
+import 'package:paymanapp/screens/payment_failure_screen.dart';
 import 'package:paymanapp/screens/payment_success_screen.dart';
 import 'package:paymanapp/screens/user_profile_screen.dart';
 import 'package:paymanapp/widgets/api_handler.dart';
@@ -316,6 +317,7 @@ class _BeneficiaryListScreenState extends State<BeneficiaryListScreen> {
 
   Future<void> _payToBeneficiary(String id, String amount) async {
     try {
+      setState(() => _isLoading = true); 
       final url = Uri.parse("$baseUrl/PayToBeneficiary");
       final response = await http.post(
         url,
@@ -342,10 +344,21 @@ class _BeneficiaryListScreenState extends State<BeneficiaryListScreen> {
         //   success: true,
         // );
       } else {
-        showResponseDialog("❌ Payment failed or status is false.", success: false);
+        //showResponseDialog("❌ Payment failed or status is false.", success: false);
+        Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => PaymentFailureScreen(phone: widget.phone)),
+      );
       }
     } catch (e) {
-      showResponseDialog("❌ Payment failed or status is false.", success: false);
+      //showResponseDialog("❌ Payment failed or status is false.", success: false);
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => PaymentFailureScreen(phone: widget.phone)),
+      );
+    }
+    finally {
+      setState(() => _isLoading = false);
     }
   }
 

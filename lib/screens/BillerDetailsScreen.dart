@@ -3,8 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:paymanapp/screens/bank_list.dart';
-import 'package:paymanapp/screens/dashboard_screen.dart';
 import 'package:paymanapp/screens/inactivity_wrapper.dart';
+import 'package:paymanapp/screens/payment_failure_screen.dart';
 import 'package:paymanapp/screens/payment_success_screen.dart';
 import 'package:paymanapp/widgets/api_handler.dart';
 
@@ -187,12 +187,18 @@ class _BillerDetailsScreenState extends State<BillerDetailsScreen> {
         // );
       } else {
         setState(() {
-          _errorMessage = data['message'] ?? 'Payment failed';
+          Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => PaymentFailureScreen(phone: widget.phone)),
+      );
         });
       }
     } catch (e) {
       setState(() {
-        _errorMessage = "Failed to process payment.";
+        Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => PaymentFailureScreen(phone: widget.phone)),
+      );
       });
     } finally {
       setState(() {

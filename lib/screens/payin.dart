@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:paymanapp/screens/dashboard_screen.dart';
 import 'package:paymanapp/screens/inactivity_wrapper.dart';
+import 'package:paymanapp/screens/payment_failure_screen.dart';
 import 'package:paymanapp/screens/payment_service.dart';
 import 'package:paymanapp/screens/payment_success_screen.dart';
 //import 'package:paymanapp/widgets/inactivity_wrapper.dart'; // Ensure this import is correct
@@ -63,14 +64,14 @@ class _PayInScreenState extends State<PayInScreen> {
 
             if (msgList is List && msgList.isNotEmpty) {
               //final firstMsg = msgList[0];
-              final status = paymentData["status"] ?? "Unknown";
+             // final status = paymentData["status"] ?? "Unknown";
               //final txnId = firstMsg["txnId"] ?? "N/A";
               //final amount = firstMsg["amount"] ?? "N/A";
 
               //final now = DateTime.now();
              // String formattedDate = "${now.day}/${now.month}/${now.year} ${now.hour}:${now.minute}";
 
-              if (status == true) {
+              if (result["status"] == "success") {
                 Navigator.push(
         context,
         MaterialPageRoute(builder: (context) => PaymentSuccessScreen(phone: widget.phone)),
@@ -80,19 +81,39 @@ class _PayInScreenState extends State<PayInScreen> {
                 //   success: true,
                 // );
               } else {
-                showResponseDialog("❌ Payment failed or status is false.");
+                 Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => PaymentFailureScreen(phone: widget.phone)),
+      );
+                //showResponseDialog("❌ Payment failed or status is false.");
               }
             } else {
-              showResponseDialog("⚠️ Unexpected data format in 'msg': ${jsonEncode(msgList)}");
+               Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => PaymentFailureScreen(phone: widget.phone)),
+      );
+              //showResponseDialog("⚠️ Unexpected data format in 'msg': ${jsonEncode(msgList)}");
             }
           } else {
-            showResponseDialog("⚠️ Unable to verify payment:\n${jsonEncode(result)}");
+             Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => PaymentFailureScreen(phone: widget.phone)),
+      );
+            //showResponseDialog("⚠️ Unable to verify payment:\n${jsonEncode(result)}");
           }
         } else {
-          showResponseDialog("❌ Could not extract transaction ID.");
+           Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => PaymentFailureScreen(phone: widget.phone)),
+      );
+          //showResponseDialog("❌ Could not extract transaction ID.");
         }
       } else {
-        showResponseDialog("❌ Payment failed: No response.");
+         Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => PaymentFailureScreen(phone: widget.phone)),
+      );
+        //showResponseDialog("❌ Payment failed: No response.");
       }
     } on PlatformException catch (e) {
       setState(() {

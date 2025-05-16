@@ -15,7 +15,6 @@ class InactivityWrapper extends StatefulWidget {
 class _InactivityWrapperState extends State<InactivityWrapper> {
   Timer? _inactivityTimer;
   Timer? _dialogTimer;
-  String _phone = 'N/A';
 
   @override
   void initState() {
@@ -25,9 +24,7 @@ class _InactivityWrapperState extends State<InactivityWrapper> {
   }
 
   void _loadPhone() async {
-    final prefs = await SharedPreferences.getInstance();
     setState(() {
-      _phone = prefs.getString('phone') ?? 'N/A';
     });
   }
 

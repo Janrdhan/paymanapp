@@ -5,6 +5,7 @@ import 'package:paymanapp/screens/aadhar_list_screen.dart';
 import 'package:paymanapp/screens/aadhar_verification_screen.dart';
 import 'package:paymanapp/screens/beneficiary_list_screen.dart';
 import 'package:paymanapp/screens/login_screen.dart';
+import 'package:paymanapp/screens/passbook_screen.dart';
 import 'package:paymanapp/screens/pay_out_history_screen.dart';
 import 'package:paymanapp/screens/payin_history_screen.dart';
 import 'package:paymanapp/screens/user_details_screen.dart';
@@ -231,6 +232,14 @@ _buildListTile(Icons.receipt_long, 'PayOut History', () {
     context,
     MaterialPageRoute(
       builder: (_) => PayOutHistoryScreen(phone: widget.phone),
+    ),
+  );
+}),
+_buildListTile(Icons.receipt_long, 'Pass Book', () {
+  Navigator.push(
+    context,
+    MaterialPageRoute(
+      builder: (_) => PassBook(phone: widget.phone),
     ),
   );
 }),
