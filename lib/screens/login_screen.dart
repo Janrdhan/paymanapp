@@ -55,6 +55,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
         final userDetails = data['userDetails'];
         if (userDetails != null) {
+          await prefs.setString("otpLoginEnabled", userDetails['OtpLoginEnabled'] ?? "");
           await prefs.setString("firstName", userDetails['firstName'] ?? "");
           await prefs.setString("lastName", userDetails['lastName'] ?? "");
           await prefs.setString("email", userDetails['email'] ?? "");
@@ -62,6 +63,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
           bool pinVerified = userDetails['pinVerified'] ?? false;
           bool aadharVerified = userDetails['isAadherVerified'] ?? false;
+          bool otpLoginEnabled = userDetails['otpLoginEnabled'] ?? false;
 
           if (!aadharVerified) {
             Navigator.push(
@@ -77,7 +79,7 @@ class _LoginScreenState extends State<LoginScreen> {
             Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (context) => OTPVerificationScreen(phone: phone),
+                builder: (context) => OTPVerificationScreen(phone: phone, otpLoginEnabled: otpLoginEnabled),
               ),
             );
           } else {

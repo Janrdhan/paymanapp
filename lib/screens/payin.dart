@@ -7,7 +7,6 @@ import 'package:paymanapp/screens/inactivity_wrapper.dart';
 import 'package:paymanapp/screens/payment_failure_screen.dart';
 import 'package:paymanapp/screens/payment_service.dart';
 import 'package:paymanapp/screens/payment_success_screen.dart';
-//import 'package:paymanapp/widgets/inactivity_wrapper.dart'; // Ensure this import is correct
 
 class PayInScreen extends StatefulWidget {
   final String phone;
@@ -26,9 +25,13 @@ class _PayInScreenState extends State<PayInScreen> {
 
   String? selectedGateway;
   String _paymentResponse = 'No payment response yet';
+  bool _isProcessing = false;
 
   Future<void> initiatePayment() async {
+    if (_isProcessing) return;
     if (!_formKey.currentState!.validate()) return;
+
+    setState(() => _isProcessing = true);
 
     final cardNumber = cardController.text.trim();
     final amount = amountController.text.trim();
@@ -37,6 +40,7 @@ class _PayInScreenState extends State<PayInScreen> {
     final accessKey = await _paymentService.getAccessKey(widget.phone, amount);
     if (accessKey == null) {
       showResponseDialog("❌ Error: Unable to get access key.");
+      setState(() => _isProcessing = false);
       return;
     }
 
@@ -63,57 +67,29 @@ class _PayInScreenState extends State<PayInScreen> {
             final msgList = paymentData["msg"];
 
             if (msgList is List && msgList.isNotEmpty) {
-              //final firstMsg = msgList[0];
-             // final status = paymentData["status"] ?? "Unknown";
-              //final txnId = firstMsg["txnId"] ?? "N/A";
-              //final amount = firstMsg["amount"] ?? "N/A";
-
-              //final now = DateTime.now();
-             // String formattedDate = "${now.day}/${now.month}/${now.year} ${now.hour}:${now.minute}";
-
               if (result["status"] == "success") {
-                Navigator.push(
-        context,
-        MaterialPageRoute(builder: (context) => PaymentSuccessScreen(phone: widget.phone)),
-      );
-                // showResponseDialog(
-                //   "✅ Payment Details:\nTxn ID: $txnId\nAmount: ₹$amount\nStatus: Success\nDate: $formattedDate",
-                //   success: true,
-                // );
-              } else {
-                 Navigator.push(
-        context,
-        MaterialPageRoute(builder: (context) => PaymentFailureScreen(phone: widget.phone)),
-      );
-                //showResponseDialog("❌ Payment failed or status is false.");
+                Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) => PaymentSuccessScreen(phone: widget.phone)),
+                );
+                return;
               }
-            } else {
-               Navigator.push(
-        context,
-        MaterialPageRoute(builder: (context) => PaymentFailureScreen(phone: widget.phone)),
-      );
-              //showResponseDialog("⚠️ Unexpected data format in 'msg': ${jsonEncode(msgList)}");
             }
-          } else {
-             Navigator.push(
-        context,
-        MaterialPageRoute(builder: (context) => PaymentFailureScreen(phone: widget.phone)),
-      );
-            //showResponseDialog("⚠️ Unable to verify payment:\n${jsonEncode(result)}");
           }
-        } else {
-           Navigator.push(
-        context,
-        MaterialPageRoute(builder: (context) => PaymentFailureScreen(phone: widget.phone)),
-      );
-          //showResponseDialog("❌ Could not extract transaction ID.");
         }
+
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+              builder: (context) => PaymentFailureScreen(phone: widget.phone)),
+        );
       } else {
-         Navigator.push(
-        context,
-        MaterialPageRoute(builder: (context) => PaymentFailureScreen(phone: widget.phone)),
-      );
-        //showResponseDialog("❌ Payment failed: No response.");
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+              builder: (context) => PaymentFailureScreen(phone: widget.phone)),
+        );
       }
     } on PlatformException catch (e) {
       setState(() {
@@ -122,6 +98,8 @@ class _PayInScreenState extends State<PayInScreen> {
       showResponseDialog(_paymentResponse);
     } catch (e) {
       showResponseDialog("Unexpected Error: $e");
+    } finally {
+      setState(() => _isProcessing = false);
     }
   }
 
@@ -138,7 +116,8 @@ class _PayInScreenState extends State<PayInScreen> {
               if (success) {
                 Navigator.pushReplacement(
                   context,
-                  MaterialPageRoute(builder: (context) => DashboardScreen(phone: widget.phone)),
+                  MaterialPageRoute(
+                      builder: (context) => DashboardScreen(phone: widget.phone)),
                 );
               }
             },
@@ -208,7 +187,7 @@ class _PayInScreenState extends State<PayInScreen> {
                   hint: const Text('Select Gateway'),
                   isExpanded: true,
                   decoration: const InputDecoration(border: OutlineInputBorder()),
-                  items: ['Easebuzz', 'Razorpay', 'Layra'].map((gateway) {
+                  items: ['Easebuzz'].map((gateway) { //'Razorpay', 'Layra'
                     return DropdownMenuItem<String>(
                       value: gateway,
                       child: Text(gateway),
@@ -221,8 +200,17 @@ class _PayInScreenState extends State<PayInScreen> {
                 const SizedBox(height: 24),
                 Center(
                   child: ElevatedButton(
-                    onPressed: initiatePayment,
-                    child: const Text('Proceed to Pay'),
+                    onPressed: _isProcessing ? null : initiatePayment,
+                    child: _isProcessing
+                        ? const SizedBox(
+                            height: 20,
+                            width: 20,
+                            child: CircularProgressIndicator(
+                              color: Colors.white,
+                              strokeWidth: 2,
+                            ),
+                          )
+                        : const Text('Proceed to Pay'),
                   ),
                 ),
               ],

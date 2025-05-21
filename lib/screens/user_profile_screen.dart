@@ -32,6 +32,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
   bool _isLoading = false;
   String _CustomerType = "N/A";
   bool _payOut = false;
+  bool _otpLoginEnabled = false;
 
   @override
   void initState() {
@@ -68,6 +69,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
           _isAdmin = data['isadmin'] == true;
           _CustomerType = data['customerType'];
           _payOut = data['isPayOut'];
+          _otpLoginEnabled = data['otpLoginEnabled'] == true;
         });
       }
     } catch (e) {
@@ -76,6 +78,33 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
       );
     } finally {
       setState(() => _isLoading = false);
+    }
+  }
+
+  Future<void> _updateOtpLoginStatus(bool value) async {
+    try {
+      final url = Uri.parse("${ApiHandler.baseUri}/Auth/UpdateOtpLoginStatus");
+      final response = await http.post(
+        url,
+        headers: {"Content-Type": "application/json"},
+        body: jsonEncode({
+          "phone": widget.phone,
+          "otpLoginEnabled": value,
+        }),
+      );
+
+      final data = jsonDecode(response.body);
+      if (data['success'] == true) {
+        setState(() {
+          _otpLoginEnabled = value;
+        });
+      } else {
+        throw Exception("Failed to update status");
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Failed to update OTP login: $e")),
+      );
     }
   }
 
@@ -201,49 +230,58 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                 _sectionHeader("PREFERENCES"),
                 _buildListTile(Icons.language, 'Languages'),
                 if (_isAdmin) ...[
-  _buildListTile(Icons.group, 'Users List', () {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (_) => UsersListScreen(phone: widget.phone, isAdmin: _isAdmin),
-      ),
-    );
-  }),
-  _buildListTile(Icons.receipt_long, 'Aadhar List', () {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (_) => AadharListScreen(phone: widget.phone),
-      ),
-    );
-  }),
-],
-
+                  _buildListTile(Icons.group, 'Users List', () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => UsersListScreen(phone: widget.phone, isAdmin: _isAdmin),
+                      ),
+                    );
+                  }),
+                  _buildListTile(Icons.receipt_long, 'Aadhar List', () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => AadharListScreen(phone: widget.phone),
+                      ),
+                    );
+                  }),
+                ],
                 _buildListTile(Icons.receipt_long, 'PayIn History', () {
-  Navigator.push(
-    context,
-    MaterialPageRoute(
-      builder: (_) => PayInHistoryScreen(phone: widget.phone),
-    ),
-  );
-}),
-_buildListTile(Icons.receipt_long, 'PayOut History', () {
-  Navigator.push(
-    context,
-    MaterialPageRoute(
-      builder: (_) => PayOutHistoryScreen(phone: widget.phone),
-    ),
-  );
-}),
-_buildListTile(Icons.receipt_long, 'Pass Book', () {
-  Navigator.push(
-    context,
-    MaterialPageRoute(
-      builder: (_) => PassBook(phone: widget.phone),
-    ),
-  );
-}),
-            
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => PayInHistoryScreen(phone: widget.phone),
+                    ),
+                  );
+                }),
+                _buildListTile(Icons.receipt_long, 'PayOut History', () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => PayOutHistoryScreen(phone: widget.phone),
+                    ),
+                  );
+                }),
+                _buildListTile(Icons.receipt_long, 'Pass Book', () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => PassBook(phone: widget.phone),
+                    ),
+                  );
+                }),
+
+                /// ✅ OTP Login Toggle Switch
+                SwitchListTile(
+                  secondary: const Icon(Icons.receipt_long, color: Colors.black),
+                  title: const Text('OTP based Login', style: TextStyle(color: Colors.black, fontSize: 16)),
+                  value: _otpLoginEnabled,
+                  onChanged: (value) {
+                    _updateOtpLoginStatus(value);
+                  },
+                ),
+
                 _buildListTile(Icons.receipt_long, 'Bill notifications'),
                 _buildListTile(Icons.tune, 'Permissions'),
                 _buildListTile(Icons.color_lens, 'Theme'),

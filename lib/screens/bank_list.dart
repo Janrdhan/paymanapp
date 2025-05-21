@@ -69,8 +69,8 @@ class _CreditCardBillersScreenState extends State<CreditCardBillersScreen> {
   List<Biller> _billers = [];
   List<Biller> _filteredBillers = [];
   final TextEditingController _searchController = TextEditingController();
-  String _availableAmount = "0.00";
-  String _instantPayBalance = "0.00";
+  //String _availableAmount = "0.00";
+  //String _instantPayBalance = "0.00";
   bool _isLoading = true;
   String? _errorMessage;
   

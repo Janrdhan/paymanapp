@@ -10,21 +10,35 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   final prefs = await SharedPreferences.getInstance();
   final phone = prefs.getString('phone');
-  runApp(MyApp(phone: phone));
+  final otpLoginEnabled = prefs.getString('otpLoginEnabled');
+  runApp(MyApp(phone: phone, otpLoginEnabled: otpLoginEnabled));
 }
 
 class MyApp extends StatelessWidget {
   final String? phone;
+  final String? otpLoginEnabled;
 
-  const MyApp({super.key, this.phone});
+  const MyApp({super.key, this.phone, this.otpLoginEnabled});
 
   @override
   Widget build(BuildContext context) {
+    final bool isOtpLoginEnabled = otpLoginEnabled == 'true';
+
+    Widget defaultScreen;
+    if (isOtpLoginEnabled) {
+      defaultScreen = const LoginScreen();
+    } else if (phone != null) {
+      defaultScreen = OTPVerificationScreen(
+        phone: phone!,
+        otpLoginEnabled: isOtpLoginEnabled,
+      );
+    } else {
+      defaultScreen = const LoginScreen();
+    }
+
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      home: TokenValidator(
-        child: phone != null ? OTPVerificationScreen(phone: phone!) : const LoginScreen(),
-      ),
+      home: TokenValidator(child: defaultScreen),
     );
   }
 }
@@ -45,7 +59,7 @@ class TokenValidator extends StatelessWidget {
         Uri.parse('${ApiHandler.baseUri1}/PayIn/ValidateToken'),
         headers: {
           "Authorization": "Bearer $token",
-          "Content-Type": "application/json", // ✅ Added Content-Type
+          "Content-Type": "application/json",
         },
       );
 
@@ -53,7 +67,7 @@ class TokenValidator extends StatelessWidget {
         final data = jsonDecode(response.body);
         return data['isValid'] == true;
       } else {
-        await prefs.remove("token"); // Clear invalid token
+        await prefs.remove("token");
         return false;
       }
     } catch (e) {
@@ -73,9 +87,9 @@ class TokenValidator extends StatelessWidget {
         }
 
         if (snapshot.hasData && snapshot.data == true) {
-          return child; // ✅ Token valid, go to app
+          return child;
         } else {
-          return const LoginScreen(); // ❌ Invalid, redirect to login
+          return const LoginScreen();
         }
       },
     );

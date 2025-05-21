@@ -9,7 +9,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 class OTPVerificationScreen extends StatefulWidget {
   final String phone;
-  const OTPVerificationScreen({required this.phone, super.key});
+  final bool otpLoginEnabled;
+  const OTPVerificationScreen({required this.phone, required this.otpLoginEnabled, super.key});
 
   @override
   _OTPVerificationScreenState createState() => _OTPVerificationScreenState();
@@ -24,6 +25,11 @@ class _OTPVerificationScreenState extends State<OTPVerificationScreen> {
   @override
   void initState() {
     super.initState();
+    if (widget.otpLoginEnabled) {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _showMessage("OTP sent to registered email.");
+    });
+  }
     _otpController.addListener(() {
       if (_otpController.text.length == 6 && !_isLoading) {
         verifyOTP(); // Auto-submit OTP when 6 digits are entered
@@ -114,10 +120,10 @@ class _OTPVerificationScreenState extends State<OTPVerificationScreen> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                const Text(
-                  "Enter 6-digit Passcode",
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                ),
+                Text(
+                       widget.otpLoginEnabled ? "Enter 6-digit OTP" : "Enter 6-digit Passcode",
+                       style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                    ),
                 const SizedBox(height: 20),
                 SizedBox(
                   width: 250,
@@ -133,12 +139,9 @@ class _OTPVerificationScreenState extends State<OTPVerificationScreen> {
                       counterText: "",
                       suffixIcon: IconButton(
                         icon: Icon(
-                          _isOtpVisible
-                              ? Icons.visibility
-                              : Icons.visibility_off,
+                          _isOtpVisible ? Icons.visibility : Icons.visibility_off,
                         ),
-                        onPressed: () =>
-                            setState(() => _isOtpVisible = !_isOtpVisible),
+                        onPressed: () => setState(() => _isOtpVisible = !_isOtpVisible),
                       ),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(10),
@@ -154,18 +157,20 @@ class _OTPVerificationScreenState extends State<OTPVerificationScreen> {
                 const SizedBox(height: 15),
                 _isResending
                     ? const CircularProgressIndicator()
-                    : Column(
-                        children: [
-                          TextButton(
-                            onPressed: _navigateToForgotPin,
-                            child: const Text("Forgot PIN?"),
-                          ),
-                          TextButton(
-                            onPressed: _navigateToChangePin,
-                            child: const Text("Change PIN"),
-                          ),
-                        ],
-                      ),
+                    : (!widget.otpLoginEnabled
+                        ? Column(
+                            children: [
+                              TextButton(
+                                onPressed: _navigateToForgotPin,
+                                child: const Text("Forgot PIN?"),
+                              ),
+                              TextButton(
+                                onPressed: _navigateToChangePin,
+                                child: const Text("Change PIN"),
+                              ),
+                            ],
+                          )
+                        : const SizedBox()),
               ],
             ),
           ),
