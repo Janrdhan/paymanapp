@@ -68,10 +68,11 @@ class _PayInScreenState extends State<PayInScreen> {
 
             if (msgList is List && msgList.isNotEmpty) {
               if (result["status"] == "success") {
+                final userName = "PAYMAN";
                 Navigator.pushReplacement(
                   context,
                   MaterialPageRoute(
-                      builder: (context) => PaymentSuccessScreen(phone: widget.phone)),
+                      builder: (context) => PaymentSuccessScreen(phone: widget.phone,amount: amount, userName: userName)),
                 );
                 return;
               }

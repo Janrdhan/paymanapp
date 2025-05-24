@@ -2,12 +2,18 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:paymanapp/screens/new_user_details_screen.dart';
+import 'package:paymanapp/screens/user_transaction_screen.dart';
 import 'package:paymanapp/widgets/api_handler.dart';
 
 class UsersListScreen extends StatefulWidget {
   final String phone;
   final bool isAdmin;
-  const UsersListScreen({super.key, required this.phone, required this.isAdmin});
+
+  const UsersListScreen({
+    super.key,
+    required this.phone,
+    required this.isAdmin,
+  });
 
   @override
   State<UsersListScreen> createState() => _UsersListScreenState();
@@ -38,7 +44,9 @@ class _UsersListScreenState extends State<UsersListScreen> {
         throw Exception("Failed to load users");
       }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Error: $e")));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Error: $e")),
+      );
       setState(() => _isLoading = false);
     }
   }
@@ -61,19 +69,23 @@ class _UsersListScreenState extends State<UsersListScreen> {
         foregroundColor: Colors.white,
         title: const Text("Users List"),
         elevation: 0,
-        ),
-      backgroundColor: Colors.white, // Set background color here
+      ),
+      backgroundColor: Colors.white,
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : ListView.builder(
               itemCount: _users.length,
               itemBuilder: (context, index) {
                 final user = _users[index];
+                final userPhone = user['phone'] ?? '';
+
                 return Card(
                   elevation: 3,
-                  margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                  margin:
+                      const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                   child: ListTile(
-                    contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                    contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 16, vertical: 12),
                     title: Text(
                       "${user['firstName'] ?? ''} ${user['lastName'] ?? ''}",
                       style: const TextStyle(fontWeight: FontWeight.bold),
@@ -81,7 +93,7 @@ class _UsersListScreenState extends State<UsersListScreen> {
                     subtitle: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text("Phone: ${user['phone'] ?? ''}"),
+                        Text("Phone: $userPhone"),
                         Text("Email: ${user['email'] ?? ''}"),
                         Text("Customer Type: ${user['customerType'] ?? ''}"),
                         Text("Margin: ${user['margin']?.toString() ?? ''}"),
@@ -99,19 +111,39 @@ class _UsersListScreenState extends State<UsersListScreen> {
                         ),
                       ],
                     ),
-                    trailing: const Icon(Icons.edit),
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => NewUserDetailsScreen(
-                            phone: widget.phone,
-                            isAdmin: widget.isAdmin,
-                            userData: user,
-                          ),
+                    trailing: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        IconButton(
+                          icon: const Icon(Icons.edit, color: Colors.grey),
+                          tooltip: 'Edit User',
+                          onPressed: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => NewUserDetailsScreen(
+                                  phone: widget.phone,
+                                  isAdmin: widget.isAdmin,
+                                  userData: user,
+                                ),
+                              ),
+                            );
+                          },
                         ),
-                      );
-                    },
+                        IconButton(
+                          icon: const Icon(Icons.account_balance_wallet, color: Colors.blue),
+                          tooltip: 'View PayIn/PayOut',
+                          onPressed: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => UserTransactionScreen(phone: userPhone),
+                              ),
+                            );
+                          },
+                        ),
+                      ],
+                    ),
                   ),
                 );
               },

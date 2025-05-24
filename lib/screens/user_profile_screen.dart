@@ -60,6 +60,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
       );
 
       final data = jsonDecode(response.body);
+      print(data);
       if (data['success'] == true) {
         setState(() {
           _InstantPayAmount = data['instantpayamount'];
@@ -73,6 +74,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
         });
       }
     } catch (e) {
+      print(e);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text("Error loading data: $e")),
       );
@@ -94,6 +96,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
       );
 
       final data = jsonDecode(response.body);
+      print(data);
       if (data['success'] == true) {
         setState(() {
           _otpLoginEnabled = value;

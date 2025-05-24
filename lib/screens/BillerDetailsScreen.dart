@@ -31,6 +31,7 @@ class _BillerDetailsScreenState extends State<BillerDetailsScreen> {
   final TextEditingController cardDigitsController = TextEditingController();
   final TextEditingController custMobileController = TextEditingController();
   final TextEditingController amountController = TextEditingController();
+  String userName = "";
 
   final _formKey = GlobalKey<FormState>();
   bool _showBillDetails = false;
@@ -71,6 +72,7 @@ class _BillerDetailsScreenState extends State<BillerDetailsScreen> {
         _enquiryReferenceId = data['enquiryReferenceId'];
         _param1 = data['param1'];
         _param2 = data['param2'];
+
         billDetails = {
           "consumerName": data["consumerName"],
           "billNumber": data["billNumber"],
@@ -81,6 +83,7 @@ class _BillerDetailsScreenState extends State<BillerDetailsScreen> {
         };
 
         amountController.text = billDetails["totalAmount"];
+        userName = billDetails["consumerName"];
 
         setState(() {
           _showBillDetails = true;
@@ -162,9 +165,10 @@ class _BillerDetailsScreenState extends State<BillerDetailsScreen> {
       final data = jsonDecode(response.body);
 
       if (response.statusCode == 200 && data['success'] == true) {
+        final amount =enteredAmount.toString();
         Navigator.push(
         context,
-        MaterialPageRoute(builder: (context) => PaymentSuccessScreen(phone: widget.phone)),
+        MaterialPageRoute(builder: (context) => PaymentSuccessScreen(phone: widget.phone, amount: amount,userName: userName)),
       );
         // showDialog(
         //   context: context,

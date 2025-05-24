@@ -330,11 +330,27 @@ class _BeneficiaryListScreenState extends State<BeneficiaryListScreen> {
       );
 
       final data = jsonDecode(response.body);
-      if (data['success'] == true) {
-      Navigator.push(
-        context,
-        MaterialPageRoute(builder: (context) => PaymentSuccessScreen(phone: widget.phone)),
-      );
+       print(data);
+if (data['success'] == true) {
+  
+  final objRoot = data['objRoot'];
+
+final userName = objRoot['accoutHolderName'] ?? "N/A";
+final amount = objRoot['orderRefNo'].toString(); // Convert to String if it's a number
+  print(userName);
+  print(amount);
+
+  Navigator.push(
+    context,
+    MaterialPageRoute(
+      builder: (context) => PaymentSuccessScreen(
+        phone: widget.phone,
+        amount: amount,
+        userName: userName,
+      ),
+    ),
+  );
+
 
         // final orderRefNo = data["orderRefNo"] ?? "N/A";
         // final now = DateTime.now();
