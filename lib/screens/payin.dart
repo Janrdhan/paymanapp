@@ -28,81 +28,73 @@ class _PayInScreenState extends State<PayInScreen> {
   bool _isProcessing = false;
 
   Future<void> initiatePayment() async {
-    if (_isProcessing) return;
-    if (!_formKey.currentState!.validate()) return;
+  if (_isProcessing) return;
+  if (!_formKey.currentState!.validate()) return;
+  _formKey.currentState!.save();
 
-    setState(() => _isProcessing = true);
+  if (selectedGateway == null) {
+    showResponseDialog("Please select a payment gateway.");
+    return;
+  }
 
-    final cardNumber = cardController.text.trim();
-    final amount = amountController.text.trim();
-    final gateway = selectedGateway!;
+  setState(() => _isProcessing = true);
 
-    final accessKey = await _paymentService.getAccessKey(widget.phone, amount);
-    if (accessKey == null) {
-      showResponseDialog("❌ Error: Unable to get access key.");
-      setState(() => _isProcessing = false);
+  final cardNumber = cardController.text.trim();
+  final amount = amountController.text.trim();
+  final gateway = selectedGateway!;
+
+  final accessKey = await _paymentService.getAccessKey(widget.phone, amount);
+  if (accessKey == null) {
+    showResponseDialog("❌ Error: Unable to get access key.");
+    setState(() => _isProcessing = false);
+    return;
+  }
+
+  try {
+    final paymentResponse = await _easebuzzFlutterPlugin.payWithEasebuzz(accessKey, "production");
+
+    if (paymentResponse == null) {
+      if (!mounted) return;
+      Navigator.pushReplacement(context, MaterialPageRoute(
+        builder: (context) => PaymentFailureScreen(phone: widget.phone),
+      ));
       return;
     }
 
-    try {
-      final paymentResponse =
-          await _easebuzzFlutterPlugin.payWithEasebuzz(accessKey, "production");
+    setState(() => _paymentResponse = paymentResponse.toString());
 
-      setState(() {
-        _paymentResponse = paymentResponse.toString();
-      });
+    // Extract txnId from response string (should be improved if structured response is available)
+    String cleaned = _paymentResponse.replaceAll(RegExp(r'^{|}$'), '');
+    final txnIdMatch = RegExp(r'txnid:\s*([\w-]+)').firstMatch(cleaned);
+    final txnId = txnIdMatch?.group(1) ?? '';
 
-      if (paymentResponse != null) {
-        final RegExp regExp = RegExp(r'(SRREDU\d+)');
-        final match = regExp.firstMatch(_paymentResponse);
-
-        if (match != null) {
-          final txnId = match.group(0)!;
-
-          final result = await _paymentService.verifyPayment(
-              txnId, widget.phone, cardNumber, amount, gateway);
-
-          if (result.containsKey("data")) {
-            final paymentData = result["data"];
-            final msgList = paymentData["msg"];
-
-            if (msgList is List && msgList.isNotEmpty) {
-              if (result["status"] == "success") {
-                final userName = "PAYMAN";
-                Navigator.pushReplacement(
-                  context,
-                  MaterialPageRoute(
-                      builder: (context) => PaymentSuccessScreen(phone: widget.phone,amount: amount, userName: userName)),
-                );
-                return;
-              }
-            }
-          }
-        }
-
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(
-              builder: (context) => PaymentFailureScreen(phone: widget.phone)),
-        );
-      } else {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(
-              builder: (context) => PaymentFailureScreen(phone: widget.phone)),
-        );
+    if (txnId.isNotEmpty) {
+      final result = await _paymentService.verifyPayment(txnId, widget.phone, cardNumber, amount, gateway);
+      if (result["status"] == "success") {
+        if (!mounted) return;
+        Navigator.pushReplacement(context, MaterialPageRoute(
+          builder: (context) => PaymentSuccessScreen(phone: widget.phone, amount: amount, userName: "PAYMAN"),
+        ));
+        return;
       }
-    } on PlatformException catch (e) {
-      setState(() {
-        _paymentResponse = jsonEncode({"message": "Payment failed", "error": e.message});
-      });
-      showResponseDialog(_paymentResponse);
-    } catch (e) {
-      showResponseDialog("Unexpected Error: $e");
-    } finally {
-      setState(() => _isProcessing = false);
     }
+
+    if (!mounted) return;
+    Navigator.pushReplacement(context, MaterialPageRoute(
+      builder: (context) => PaymentFailureScreen(phone: widget.phone),
+    ));
+  } on PlatformException catch (e) {
+    setState(() => _paymentResponse = jsonEncode({"message": "Payment failed", "error": e.message}));
+    showResponseDialog(_paymentResponse);
+  } catch (e) {
+    showResponseDialog("Unexpected Error: $e");
+  } finally {
+    setState(() => _isProcessing = false);
   }
+}
+
+
+
 
   void showResponseDialog(String message, {bool success = false}) {
     showDialog(

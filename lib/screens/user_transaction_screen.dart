@@ -29,7 +29,7 @@ class _UserTransactionScreenState extends State<UserTransactionScreen> {
 
   Future<void> fetchUserHistory() async {
     try {
-      final url = Uri.parse('${ApiHandler.baseUri}/PayIn/GetUserHistory?phone=${widget.phone}');
+      final url = Uri.parse('${ApiHandler.baseUri1}/PayIn/GetUserHistory?phone=${widget.phone}');
       final response = await http.get(url);
 
       final data = jsonDecode(response.body);
