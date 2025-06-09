@@ -33,6 +33,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
   String _CustomerType = "N/A";
   bool _payOut = false;
   bool _otpLoginEnabled = false;
+  bool _payOutEnable = false;
 
   @override
   void initState() {
@@ -71,6 +72,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
           _CustomerType = data['customerType'];
           _payOut = data['isPayOut'];
           _otpLoginEnabled = data['otpLoginEnabled'] == true;
+          _payOutEnable = data['payOutEnable'] == true;
         });
       }
     } catch (e) {
@@ -155,7 +157,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                           ],
                         ),
                       ),
-                      if (_aadharVerified && _payOut)
+                      if (_aadharVerified && _payOut && _payOutEnable)
                         TextButton(
                           onPressed: () {
                             Navigator.of(context).push(
@@ -168,7 +170,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                               ),
                             );
                           },
-                          child: const Text("PAYMENT", style: TextStyle(color: Colors.blueAccent)),
+                          child: const Text("PAYMANT", style: TextStyle(color: Colors.blueAccent)),
                         ),
                       TextButton(
                         onPressed: () {

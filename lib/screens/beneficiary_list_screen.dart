@@ -470,7 +470,18 @@ final amount = objRoot['orderRefNo'].toString(); // Convert to String if it's a 
                                   ),
                                 ],
                               ),
-                              Text("Name: ${beneficiary['name']}"),
+                               RichText(
+    text: TextSpan(
+      style: DefaultTextStyle.of(context).style,
+      children: [
+        const TextSpan(text: "Name: "),
+        TextSpan(
+          text: "${beneficiary['name']}",
+          style: const TextStyle(fontWeight: FontWeight.bold),
+        ),
+      ],
+    ),
+  ),
                               Text("Account Number: ${beneficiary['accountNumber']}"),
                               Text("IFSC Code: ${beneficiary['ifscCode']}"),
                               Text(
@@ -517,9 +528,9 @@ final amount = objRoot['orderRefNo'].toString(); // Convert to String if it's a 
                                             final userWalletAmount = double.tryParse(widget.userWalletAmount);
                                             final pineLabsAmount = double.tryParse(widget.pineLabsAmount);
 
-                                            if (enteredAmount == null || enteredAmount < 100 || enteredAmount > 200000) {
+                                            if (enteredAmount == null || enteredAmount < 1000 || enteredAmount > 200000) {
                                               ScaffoldMessenger.of(context).showSnackBar(
-                                                const SnackBar(content: Text("Enter an amount between ₹100 and ₹200,000")),
+                                                const SnackBar(content: Text("Enter an amount between ₹1000 and ₹200,000")),
                                               );
                                               return;
                                             }
@@ -539,7 +550,12 @@ final amount = objRoot['orderRefNo'].toString(); // Convert to String if it's a 
                                             }
 
                                             final pin = await _showPinDialog();
-                                            if (pin == null) return;
+                                            if (pin == null || pin.length != 6) {
+  ScaffoldMessenger.of(context).showSnackBar(
+    const SnackBar(content: Text("PIN must be 6 digits.")),
+  );
+  return;
+}
 
                                             final isValidPin = await _validatePin(pin);
                                             if (!isValidPin) {
@@ -549,7 +565,48 @@ final amount = objRoot['orderRefNo'].toString(); // Convert to String if it's a 
                                               return;
                                             }
 
-                                            _payToBeneficiary(beneficiary['id'], amountText);
+                                            if (isValidPin) {
+  // Show confirmation dialog with account holder name
+  bool confirmed = await showDialog(
+    context: context,
+    builder: (context) => AlertDialog(
+      title: const Text('Confirm Payment'),
+      content: RichText(
+        text: TextSpan(
+          style: Theme.of(context).textTheme.bodyMedium,
+          children: [
+            const TextSpan(text: 'Do you want to proceed with the payment for '),
+            TextSpan(
+              text: '${beneficiary['name']}',
+              style: const TextStyle(fontWeight: FontWeight.bold),
+            ),
+            const TextSpan(text: '?'),
+          ],
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(false),
+          child: const Text('Cancel'),
+        ),
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(true),
+          child: const Text('Confirm'),
+        ),
+      ],
+    ),
+  );
+
+  if (confirmed == true) {
+    setState(() => _isLoading = true); 
+    // Proceed with payment
+    await _payToBeneficiary(beneficiary['id'], amountText);
+  }
+} else {
+  ScaffoldMessenger.of(context).showSnackBar(
+    const SnackBar(content: Text("Invalid PIN")),
+  );
+}
                                           }
                                         : null,
                                     style: ElevatedButton.styleFrom(
