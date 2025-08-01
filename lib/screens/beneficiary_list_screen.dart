@@ -12,12 +12,18 @@ class BeneficiaryListScreen extends StatefulWidget {
   final String phone;
   final String userWalletAmount;
   final String pineLabsAmount;
+  final int payOutMaxAmount;
+  final int payOutMinAmount;
+  final int minBalanceAvl;
 
   const BeneficiaryListScreen({
     super.key,
     required this.phone,
     required this.userWalletAmount,
     required this.pineLabsAmount,
+    required this.payOutMaxAmount,
+    required this.payOutMinAmount,
+    required this.minBalanceAvl
   });
 
   @override
@@ -528,11 +534,19 @@ final amount = objRoot['orderRefNo'].toString(); // Convert to String if it's a 
                                             final userWalletAmount = double.tryParse(widget.userWalletAmount);
                                             final pineLabsAmount = double.tryParse(widget.pineLabsAmount);
 
-                                            if (enteredAmount == null || enteredAmount < 1000 || enteredAmount > 200000) {
-                                              ScaffoldMessenger.of(context).showSnackBar(
-                                                const SnackBar(content: Text("Enter an amount between ₹1000 and ₹200,000")),
-                                              );
-                                              return;
+                                            final minAmount = widget.payOutMinAmount;
+                                            final maxAmount = widget.payOutMaxAmount;
+                                            final minBalAvl = widget.minBalanceAvl;
+
+                                            
+
+                                            if (enteredAmount == null || enteredAmount < minAmount || enteredAmount > maxAmount) {
+                                                 ScaffoldMessenger.of(context).showSnackBar(
+                                                         SnackBar(
+                                                          content: Text("Enter an amount between ₹$minAmount and ₹$maxAmount"),
+                                                          ),
+                                                     );
+                                               return;
                                             }
 
                                             if (userWalletAmount == null || userWalletAmount < enteredAmount) {
@@ -549,13 +563,25 @@ final amount = objRoot['orderRefNo'].toString(); // Convert to String if it's a 
                                               return;
                                             }
 
-                                            final pin = await _showPinDialog();
-                                            if (pin == null || pin.length != 6) {
+                                            final avlbal = userWalletAmount - enteredAmount;
+
+// Check if available balance falls below minimum required balance
+if (avlbal < minBalAvl) {
   ScaffoldMessenger.of(context).showSnackBar(
-    const SnackBar(content: Text("PIN must be 6 digits.")),
+    SnackBar(content: Text("Insufficient wallet balance. You must maintain at least ₹$minBalAvl in your wallet.")),
   );
   return;
 }
+
+
+
+                                            final pin = await _showPinDialog();
+                                            if (pin == null || pin.length != 6) {
+                                                     ScaffoldMessenger.of(context).showSnackBar(
+                                                    const SnackBar(content: Text("PIN must be 6 digits.")),
+                                                );
+                                               return;
+                                              }
 
                                             final isValidPin = await _validatePin(pin);
                                             if (!isValidPin) {

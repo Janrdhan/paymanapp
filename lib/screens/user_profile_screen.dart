@@ -34,6 +34,10 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
   bool _payOut = false;
   bool _otpLoginEnabled = false;
   bool _payOutEnable = false;
+  int _payOutMinAmount = 0;
+  int _payOutMaxAmount = 0;
+  int _minBalanceAvl=0 ;
+
 
   @override
   void initState() {
@@ -73,6 +77,9 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
           _payOut = data['isPayOut'];
           _otpLoginEnabled = data['otpLoginEnabled'] == true;
           _payOutEnable = data['payOutEnable'] == true;
+          _payOutMaxAmount = data['payOutMaxAmount'];
+          _payOutMinAmount = data['payOutMinAmount'];
+          _minBalanceAvl = data['minBalanceAvl'];
         });
       }
     } catch (e) {
@@ -166,6 +173,9 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                                   phone: widget.phone,
                                   userWalletAmount: _userWalletAmount,
                                   pineLabsAmount: _PineLabsAmount,
+                                  payOutMaxAmount:_payOutMaxAmount,
+                                  payOutMinAmount:_payOutMinAmount,
+                                  minBalanceAvl:_minBalanceAvl
                                 ),
                               ),
                             );
