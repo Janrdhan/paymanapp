@@ -266,10 +266,13 @@ class _PayInScreenState extends State<PayInScreen> {
                     if (value == null || value.isEmpty) {
                       return 'Amount is required';
                     }
-                    if (int.tryParse(value) == null ||
-                        int.parse(value) <= 0) {
-                      return 'Enter a valid amount';
+                    final parsedValue = int.tryParse(value);
+                    if (parsedValue == null || parsedValue <= 0) {
+                         return 'Enter a valid amount';
                     }
+                    if (parsedValue > 99999) {
+                        return 'Amount cannot be more than 99999';
+                      }
                     return null;
                   },
                 ),

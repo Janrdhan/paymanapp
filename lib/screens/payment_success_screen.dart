@@ -20,25 +20,42 @@ class PaymentSuccessScreen extends StatefulWidget {
 
 class _PaymentSuccessScreenState extends State<PaymentSuccessScreen> {
   final AudioPlayer _audioPlayer = AudioPlayer();
+  bool _navigated = false; // prevent multiple navigations
 
   @override
   void initState() {
     super.initState();
     _playSuccessSound();
-    _navigateToDashboard();
+    _navigateToDashboard(); // auto after 5 seconds
   }
 
   Future<void> _playSuccessSound() async {
     await _audioPlayer.play(AssetSource('sounds/success-340660.mp3'));
   }
 
-  void _navigateToDashboard() {
-    Future.delayed(Duration(seconds: 5), () {
+  void _navigateToDashboard({bool immediate = false}) {
+    if (_navigated) return; // avoid duplicate navigation
+    _navigated = true;
+
+    if (immediate) {
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (context) => DashboardScreen(phone: widget.phone)),
+        MaterialPageRoute(
+          builder: (context) => DashboardScreen(phone: widget.phone),
+        ),
       );
-    });
+    } else {
+      Future.delayed(const Duration(seconds: 5), () {
+        if (mounted) {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+              builder: (context) => DashboardScreen(phone: widget.phone),
+            ),
+          );
+        }
+      });
+    }
   }
 
   String _maskPhone(String phone) {
@@ -49,29 +66,37 @@ class _PaymentSuccessScreenState extends State<PaymentSuccessScreen> {
   @override
   Widget build(BuildContext context) {
     final time = DateTime.now();
-    return Scaffold(
-      backgroundColor: Color(0xFF1BB66D),
-      body: SafeArea(
-        child: Column(
-          children: [
-            SizedBox(height: 40),
-            Icon(Icons.check_circle, size: 90, color: Colors.white),
-            SizedBox(height: 10),
-            Text(
-              "Payment Successful",
-              style: TextStyle(
-                color: Colors.white, fontWeight: FontWeight.bold, fontSize: 22),
-            ),
-            SizedBox(height: 6),
-            Text(
-              "${time.day} ${_monthName(time.month)} ${time.year} at ${_formatTime(time)}",
-              style: TextStyle(color: Colors.white70, fontSize: 14),
-            ),
-            SizedBox(height: 30),
-            _buildUserCard(),
-            SizedBox(height: 20),
-            _buildActionButtons(),
-          ],
+    return WillPopScope(
+      onWillPop: () async {
+        _navigateToDashboard(immediate: true); // go to dashboard immediately
+        return false; // prevent default back pop
+      },
+      child: Scaffold(
+        backgroundColor: const Color(0xFF1BB66D),
+        body: SafeArea(
+          child: Column(
+            children: [
+              const SizedBox(height: 40),
+              const Icon(Icons.check_circle, size: 90, color: Colors.white),
+              const SizedBox(height: 10),
+              const Text(
+                "Payment Successful",
+                style: TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 22),
+              ),
+              const SizedBox(height: 6),
+              Text(
+                "${time.day} ${_monthName(time.month)} ${time.year} at ${_formatTime(time)}",
+                style: const TextStyle(color: Colors.white70, fontSize: 14),
+              ),
+              const SizedBox(height: 30),
+              _buildUserCard(),
+              const SizedBox(height: 20),
+              _buildActionButtons(),
+            ],
+          ),
         ),
       ),
     );
@@ -79,7 +104,7 @@ class _PaymentSuccessScreenState extends State<PaymentSuccessScreen> {
 
   Widget _buildUserCard() {
     return Card(
-      margin: EdgeInsets.symmetric(horizontal: 16),
+      margin: const EdgeInsets.symmetric(horizontal: 16),
       color: Colors.black87,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: Padding(
@@ -88,35 +113,39 @@ class _PaymentSuccessScreenState extends State<PaymentSuccessScreen> {
           children: [
             Row(
               children: [
-                CircleAvatar(
+                const CircleAvatar(
                   radius: 22,
                   backgroundColor: Colors.purple,
                   child: Icon(Icons.person, color: Colors.white),
                 ),
-                SizedBox(width: 10),
+                const SizedBox(width: 10),
                 Expanded(
                   child: Text(
                     widget.userName.toUpperCase(),
-                    style: TextStyle(
-                      color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
+                    style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold),
                   ),
                 ),
                 Text(
                   _maskPhone(widget.phone),
-                  style: TextStyle(color: Colors.white70),
+                  style: const TextStyle(color: Colors.white70),
                 ),
               ],
             ),
-            SizedBox(height: 10),
+            const SizedBox(height: 10),
             Row(
               children: [
                 Text(
                   "₹${widget.amount}",
-                  style: TextStyle(
-                    color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold),
+                  style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold),
                 ),
-                Spacer(),
-                Text(
+                const Spacer(),
+                const Text(
                   "Split Expense",
                   style: TextStyle(color: Colors.purpleAccent),
                 )
@@ -149,21 +178,32 @@ class _PaymentSuccessScreenState extends State<PaymentSuccessScreen> {
           radius: 24,
           child: Icon(icon, color: Colors.white),
         ),
-        SizedBox(height: 6),
-        Text(label, style: TextStyle(color: Colors.white))
+        const SizedBox(height: 6),
+        Text(label, style: const TextStyle(color: Colors.white))
       ],
     );
   }
 
-  String _monthName(int month) {
+  static String _monthName(int month) {
     const months = [
-      '', 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
+      '',
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec'
     ];
     return months[month];
   }
 
-  String _formatTime(DateTime time) {
+  static String _formatTime(DateTime time) {
     int hour = time.hour;
     String meridiem = hour >= 12 ? 'PM' : 'AM';
     hour = hour % 12 == 0 ? 12 : hour % 12;

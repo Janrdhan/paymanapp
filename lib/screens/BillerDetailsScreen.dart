@@ -41,6 +41,7 @@ class _BillerDetailsScreenState extends State<BillerDetailsScreen> {
   String? _enquiryReferenceId;
   String? _param1;
   String? _param2;
+  String? _cardholderName;
 
   Map<String, dynamic> billDetails = {};
 
@@ -72,6 +73,7 @@ class _BillerDetailsScreenState extends State<BillerDetailsScreen> {
         _enquiryReferenceId = data['enquiryReferenceId'];
         _param1 = data['param1'];
         _param2 = data['param2'];
+        _cardholderName = data["consumerName"];
 
         billDetails = {
           "consumerName": data["consumerName"],
@@ -159,6 +161,8 @@ class _BillerDetailsScreenState extends State<BillerDetailsScreen> {
           'param1': _param1,
           'param2': _param2,
           'lastFourDigits': cardDigitsController.text.trim(),
+          'holderMobile': regMobileController.text.trim(),
+          'customerName': _cardholderName
         }),
       );
 

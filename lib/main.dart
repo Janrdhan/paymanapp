@@ -4,6 +4,7 @@ import 'package:paymanapp/screens/login_screen.dart';
 import 'package:paymanapp/screens/otp_screen.dart';
 import 'package:paymanapp/widgets/api_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:in_app_update/in_app_update.dart'; // ✅ added for force update
 import 'dart:convert';
 
 void main() async {
@@ -38,11 +39,63 @@ class MyApp extends StatelessWidget {
 
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      home: TokenValidator(child: defaultScreen),
+      home: UpdateChecker( // ✅ wrap with update checker first
+        child: TokenValidator(child: defaultScreen),
+      ),
     );
   }
 }
 
+/// ✅ Force Update Checker (runs before showing app screens)
+class UpdateChecker extends StatefulWidget {
+  final Widget child;
+
+  const UpdateChecker({super.key, required this.child});
+
+  @override
+  State<UpdateChecker> createState() => _UpdateCheckerState();
+}
+
+class _UpdateCheckerState extends State<UpdateChecker> {
+  bool _updateChecked = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _checkForUpdate();
+  }
+
+  Future<void> _checkForUpdate() async {
+    try {
+      AppUpdateInfo info = await InAppUpdate.checkForUpdate();
+
+      if (info.updateAvailability == UpdateAvailability.updateAvailable) {
+        // 🔹 Force update (user cannot skip)
+        await InAppUpdate.performImmediateUpdate();
+      }
+    } catch (e) {
+      debugPrint("Update check failed: $e");
+    }
+
+    if (mounted) {
+      setState(() {
+        _updateChecked = true; // Continue app if no update
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (!_updateChecked) {
+      return const Scaffold(
+        body: Center(child: CircularProgressIndicator()),
+      );
+    }
+    return widget.child;
+  }
+}
+
+/// ✅ Token Validator (your original logic for JWT token)
 class TokenValidator extends StatelessWidget {
   final Widget child;
 
