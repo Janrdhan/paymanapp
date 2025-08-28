@@ -1,4 +1,4 @@
-// ignore: file_names
+
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
@@ -42,6 +42,13 @@ class _BillerDetailsScreenState extends State<BillerDetailsScreen> {
   String? _param1;
   String? _param2;
   String? _cardholderName;
+  String? _billerResponse;
+  String?  _adddditionalInfo ;
+  String?  _billFetchResponse;
+  String? _MinPayable;
+  String? _CuurentOutStanding;
+  String? _DueDate;
+  String? _TotalAmount;
 
   Map<String, dynamic> billDetails = {};
 
@@ -59,8 +66,8 @@ class _BillerDetailsScreenState extends State<BillerDetailsScreen> {
         url,
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({
-          'registeredMobile': regMobileController.text.trim(),
-          'creditCardLast4': cardDigitsController.text.trim(),
+          'creditCardLast4': regMobileController.text.trim(),
+          'registeredMobile': cardDigitsController.text.trim(),          
           'customerMobile': custMobileController.text.trim(),
           'billerId': widget.biller.billerId,
         }),
@@ -74,11 +81,16 @@ class _BillerDetailsScreenState extends State<BillerDetailsScreen> {
         _param1 = data['param1'];
         _param2 = data['param2'];
         _cardholderName = data["consumerName"];
+        _billerResponse = data["billerResponse"];
+        _adddditionalInfo = data["adddditionalInfo"];
+        _billFetchResponse=data["billFetchResponse"];
+        _MinPayable=(data["minPayable"] ?? 0).toString();
+        _CuurentOutStanding=(data["cuurentOutStanding"] ?? 0).toString();
+        _DueDate=data["dueDate"];
+        _TotalAmount=(data["totalAmount"] ?? 0).toString();
 
         billDetails = {
           "consumerName": data["consumerName"],
-          "billNumber": data["billNumber"],
-          "billDate": data["billDate"],
           "dueDate": data["dueDate"],
           "totalAmount": data["totalAmount"].toString(),
           "minPayable": data["minPayable"].toString()
@@ -148,23 +160,28 @@ class _BillerDetailsScreenState extends State<BillerDetailsScreen> {
 
     try {
       final url = Uri.parse('${ApiHandler.baseUri}/CCBill/ProcessPayment');
-      final response = await http.post(
-        url,
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({
-          'billerId': widget.biller.billerId,
-          'customerMobile': regMobileController.text.trim(),
-          'amount': amountController.text.trim(),
-          'phone': widget.phone,
-          'paymentMode': _paymentMode,
-          'enquiryReferenceId': _enquiryReferenceId,
-          'param1': _param1,
-          'param2': _param2,
-          'lastFourDigits': cardDigitsController.text.trim(),
-          'holderMobile': regMobileController.text.trim(),
-          'customerName': _cardholderName
-        }),
-      );
+         final response = await http.post(
+               url,
+               headers: {'Content-Type': 'application/json'},
+               body: jsonEncode({
+              'billerId': widget.biller.billerId,
+              'customerMobile': custMobileController.text.trim(),
+              'amount': double.tryParse(amountController.text.trim()) ?? 0,
+              'phone': widget.phone,
+              'paymentMode': _paymentMode,
+              'enquiryReferenceId': _enquiryReferenceId,
+              'param1': _param1,
+              'param2': _param2,
+              'lastFourDigits': cardDigitsController.text.trim(),
+              'holderMobile': cardDigitsController.text.trim(),
+              'customerName': _cardholderName,
+             'device': 'Mobile',
+               'billerResponse': _billerResponse,
+             'adddditionalInfo': _adddditionalInfo,
+             'billFetchResponse': _billFetchResponse,
+           }),
+          );
+
 
       final data = jsonDecode(response.body);
 
@@ -222,12 +239,16 @@ class _BillerDetailsScreenState extends State<BillerDetailsScreen> {
       appBar: AppBar(
         title: const Text('Credit Card'),
         leading: const BackButton(),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.close),
-            onPressed: () => Navigator.pop(context),
-          )
-        ],
+  actions: [
+    Padding(
+      padding: const EdgeInsets.only(right: 12),
+      child: Image.asset(
+        "assets/images/Bharat Connect Primary Logo_PNG.png", // your BBPS logo
+        height: 40,
+        width: 40,
+      ),
+    ),
+  ],
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
@@ -339,8 +360,6 @@ class _BillerDetailsScreenState extends State<BillerDetailsScreen> {
                                 style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
                             const SizedBox(height: 10),
                             _buildDetailRow('Consumer Name', billDetails['consumerName']),
-                            _buildDetailRow('Bill Number', billDetails['billNumber']),
-                            _buildDetailRow('Bill Date', billDetails['billDate']),
                             _buildDetailRow('Bill Due Date', billDetails['dueDate']),
                             _buildDetailRow('Total Due Amount', billDetails['totalAmount']),
                             _buildDetailRow('Minimum Payable Amount', billDetails['minPayable']),

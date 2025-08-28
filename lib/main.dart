@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:in_app_update/in_app_update.dart';
+import 'dart:convert';
+
 import 'package:paymanapp/screens/login_screen.dart';
 import 'package:paymanapp/screens/otp_screen.dart';
 import 'package:paymanapp/widgets/api_handler.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'package:in_app_update/in_app_update.dart'; // ✅ added for force update
-import 'dart:convert';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -25,31 +26,22 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     final bool isOtpLoginEnabled = otpLoginEnabled == 'true';
 
-    Widget defaultScreen;
-    if (isOtpLoginEnabled) {
-      defaultScreen = const LoginScreen();
-    } else if (phone != null) {
-      defaultScreen = OTPVerificationScreen(
-        phone: phone!,
-        otpLoginEnabled: isOtpLoginEnabled,
-      );
-    } else {
-      defaultScreen = const LoginScreen();
-    }
+    Widget defaultScreen = isOtpLoginEnabled
+        ? const LoginScreen()
+        : phone != null
+            ? OTPVerificationScreen(phone: phone!, otpLoginEnabled: isOtpLoginEnabled)
+            : const LoginScreen();
 
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      home: UpdateChecker( // ✅ wrap with update checker first
-        child: TokenValidator(child: defaultScreen),
-      ),
+      home: UpdateChecker(child: TokenValidator(child: defaultScreen)),
     );
   }
 }
 
-/// ✅ Force Update Checker (runs before showing app screens)
+/// Force Update Checker
 class UpdateChecker extends StatefulWidget {
   final Widget child;
-
   const UpdateChecker({super.key, required this.child});
 
   @override
@@ -62,25 +54,24 @@ class _UpdateCheckerState extends State<UpdateChecker> {
   @override
   void initState() {
     super.initState();
-    _checkForUpdate();
+    WidgetsBinding.instance.addPostFrameCallback((_) => _checkForForceUpdate());
   }
 
-  Future<void> _checkForUpdate() async {
+  Future<void> _checkForForceUpdate() async {
     try {
       AppUpdateInfo info = await InAppUpdate.checkForUpdate();
-
-      if (info.updateAvailability == UpdateAvailability.updateAvailable) {
-        // 🔹 Force update (user cannot skip)
+      if (info.updateAvailability == UpdateAvailability.updateAvailable &&
+          info.immediateUpdateAllowed == true) {
+        // ✅ Force immediate update
         await InAppUpdate.performImmediateUpdate();
+        return; // Stops app until update is applied
       }
     } catch (e) {
       debugPrint("Update check failed: $e");
     }
 
     if (mounted) {
-      setState(() {
-        _updateChecked = true; // Continue app if no update
-      });
+      setState(() => _updateChecked = true);
     }
   }
 
@@ -95,27 +86,21 @@ class _UpdateCheckerState extends State<UpdateChecker> {
   }
 }
 
-/// ✅ Token Validator (your original logic for JWT token)
+/// Token Validator (JWT)
 class TokenValidator extends StatelessWidget {
   final Widget child;
-
   const TokenValidator({super.key, required this.child});
 
   Future<bool> _isTokenValid() async {
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString("token");
-
     if (token == null) return false;
 
     try {
       final response = await http.get(
         Uri.parse('${ApiHandler.baseUri1}/PayIn/ValidateToken'),
-        headers: {
-          "Authorization": "Bearer $token",
-          "Content-Type": "application/json",
-        },
+        headers: {"Authorization": "Bearer $token", "Content-Type": "application/json"},
       );
-
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
         return data['isValid'] == true;
@@ -139,11 +124,7 @@ class TokenValidator extends StatelessWidget {
           );
         }
 
-        if (snapshot.hasData && snapshot.data == true) {
-          return child;
-        } else {
-          return const LoginScreen();
-        }
+        return (snapshot.data ?? false) ? child : const LoginScreen();
       },
     );
   }

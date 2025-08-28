@@ -104,15 +104,15 @@ class _PayOutHistoryScreenState extends State<PayOutHistoryScreen> {
                             Text("Transaction ID: ${item['refId']}"),
                             Text("Account Number: ${item['accountNo']}"),
                             //Text("Ifsc Code: ${item['ifscCode']}"),
-                             Text("Account Holder Name: ${item['accountHolderName']}"),
-                            //Text("Mobile: ${item['userPhone']}"),
+                            Text("Account Holder Name: ${item['accountHolderName']}"),
+                            Text("Mode: ${item['payOutType']}"),
                             Text("PayOut Charges: ₹${item['payoutCommission']}"),
                             //Text("Status: ${item['status']}"),
                             Text("Created: ${dateFormat.format(DateTime.parse(item['createdDate']))}"),
                           ],
                         ),
                         trailing: Text(
-                          item['status'] ==true ? 'Sucess' : 'Failed',
+                          item['result'] == null ? 'Failed': item['result'],
                           style: TextStyle(
                             color: item['status'] == true ? Colors.green : Colors.red,
                             fontWeight: FontWeight.bold,

@@ -76,6 +76,7 @@ class _CreditCardBillersScreenState extends State<CreditCardBillersScreen> {
   
    String _InstantPayAmount = "N/A";
    String _userWalletAmount = "N/A";
+   bool? _billAvenue;
 
   @override
   void initState() {
@@ -96,17 +97,15 @@ class _CreditCardBillersScreenState extends State<CreditCardBillersScreen> {
       final response = await http.get(Uri.parse('${ApiHandler.baseUri}/CCBill/CreditCardBillers'));
 
       if (response.statusCode == 200) {
-        debugger();
         Map<String, dynamic> data = json.decode(response.body);
-        print("Parsed data: $data");
 
         setState(() {
           if (data.containsKey("billers") && data["billers"] is List) {
-            print("Parsed data: $data");
+            print("Parsed data: $data['billAvenue']");
+            _billAvenue= data['billAvenue'];
             _billers = (data["billers"] as List)
                 .map((json) => Biller.fromJson(json))
                 .toList();
-                print("Parsed data: $_billers");
           } else {
             _billers = [];
           }
@@ -114,8 +113,6 @@ class _CreditCardBillersScreenState extends State<CreditCardBillersScreen> {
           _filteredBillers = _billers;
           _isLoading = false;
         });
-
-        print("Parsed billers: $_billers");
       } else {
         setState(() {
           _isLoading = false;
@@ -167,7 +164,17 @@ class _CreditCardBillersScreenState extends State<CreditCardBillersScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Credit Card Billers')),
+      appBar: AppBar(title: const Text('Credit Card Billers'),
+       actions: [
+    Padding(
+      padding: const EdgeInsets.only(right: 12),
+      child: Image.asset(
+        "assets/images/Bharat Connect Primary Logo_PNG.png", // your BBPS logo path
+        height: 40,
+        width: 40,
+      ),
+    ),
+  ],),
       body: Column(
         children: [
           Padding(
@@ -228,14 +235,78 @@ class _CreditCardBillersScreenState extends State<CreditCardBillersScreen> {
                               color: Colors.blue, size: 40),
                       title: Text(biller.billerName),
                       //subtitle: Text("Biller ID: ${biller.billerId}"),
-                      onTap: () {
-  Navigator.push(
-    context,
-    MaterialPageRoute(
-      builder: (_) => BillerDetailsScreen(biller: biller,phone: widget.phone, userWalletAmount:_userWalletAmount,instantPaysAmount:_InstantPayAmount),
-    ),
+                     onTap: () async {
+  // Show loading
+  showDialog(
+    context: context,
+    barrierDismissible: false,
+    builder: (_) => const Center(child: CircularProgressIndicator()),
   );
+
+  try {
+    if (_billAvenue == true) {
+      final url = Uri.parse('${ApiHandler.baseUri}/CCBill/CheckBillerCategory?billerId=${biller.billerId}');
+      final response = await http.get(url, headers: {'Content-Type': 'application/json'});
+
+      if (!mounted) return;
+      Navigator.of(context).pop(); // remove loading dialog
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+
+        if (data['isAvailable'] == true) {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => BillerDetailsScreen(
+                biller: biller,
+                phone: widget.phone,
+                userWalletAmount: _userWalletAmount,
+                instantPaysAmount: _InstantPayAmount,
+              ),
+            ),
+          );
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(data['message'] ?? "This biller is not valid"),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text("Failed to validate biller: ${response.statusCode}"),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } else {
+      Navigator.of(context).pop(); // remove loading dialog if needed
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => BillerDetailsScreen(
+            biller: biller,
+            phone: widget.phone,
+            userWalletAmount: _userWalletAmount,
+            instantPaysAmount: _InstantPayAmount,
+          ),
+        ),
+      );
+    }
+  } catch (e) {
+    if (mounted) Navigator.of(context).pop(); // remove loading dialog
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text("Error validating biller: $e"),
+        backgroundColor: Colors.red,
+      ),
+    );
+  }
 },
+
                     );
                   },
                 ),
