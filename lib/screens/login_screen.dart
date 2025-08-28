@@ -5,6 +5,7 @@ import 'package:http/http.dart' as http;
 import 'package:paymanapp/screens/add_userpin_screen.dart';
 import 'package:paymanapp/screens/otp_screen.dart';
 import 'package:paymanapp/screens/privacy.dart';
+import 'package:paymanapp/screens/signup_screen.dart';
 import 'package:paymanapp/screens/terms.dart';
 import 'package:paymanapp/screens/user_profile_screen.dart';
 import 'package:paymanapp/widgets/api_handler.dart';
@@ -79,7 +80,7 @@ class _LoginScreenState extends State<LoginScreen> {
             Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (context) => OTPVerificationScreen(phone: phone, otpLoginEnabled: otpLoginEnabled),
+                builder: (context) => OTPVerificationScreen(phone: phone, otpLoginEnabled: otpLoginEnabled, signup:false),
               ),
             );
           } else {
@@ -150,14 +151,8 @@ class _LoginScreenState extends State<LoginScreen> {
                 Image.asset("assets/images/PaymanFintech.png", height: 80),
                 const SizedBox(height: 20),
                 const Text(
-                  "Log in to Payman",
+                  "Welcome to Payman",
                   style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
-                ),
-                const SizedBox(height: 10),
-                const Text(
-                  "We will create an account if you don't have one.",
-                  style: TextStyle(fontSize: 14, color: Colors.grey),
-                  textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 30),
 
@@ -256,6 +251,18 @@ class _LoginScreenState extends State<LoginScreen> {
                     ],
                   ),
                 ),
+                const SizedBox(height: 20),
+
+                TextButton(
+                  onPressed: () {
+                    Navigator.push(context, MaterialPageRoute(builder: (_) => const SignupScreen()));
+                  },
+                  child: const Text(
+                    "Don't have an account? Sign Up",
+                    style: TextStyle(color: Colors.blue, fontWeight: FontWeight.w600),
+                  ),
+                ),
+
                 const SizedBox(height: 50),
               ],
             ),

@@ -51,7 +51,7 @@ class _SignupScreenState extends State<SignupScreen> {
             builder: (context) => OTPVerificationScreen(
               phone: _phone.text.trim(),
               otpLoginEnabled: true,
-              //signup: true
+              signup: true
             ),
           ),
         );

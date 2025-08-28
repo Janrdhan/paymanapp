@@ -262,6 +262,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                     );
                   }),
                 ],
+               if (_CustomerType != "new") ...[
                 _buildListTile(Icons.receipt_long, 'PayIn History', () {
                   Navigator.push(
                     context,
@@ -286,7 +287,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                     ),
                   );
                 }),
-
+               ],
                 /// ✅ OTP Login Toggle Switch
                 SwitchListTile(
                   secondary: const Icon(Icons.receipt_long, color: Colors.black),
@@ -348,9 +349,11 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
 
   Widget _buildButtonRow() {
     List<Widget> rowChildren = [];
+     if (_CustomerType != "new") {
+      rowChildren.add(_amountCard("Wallet Amount", _userWalletAmount));
+     }
 
-    rowChildren.add(_amountCard("Wallet Amount", _userWalletAmount));
-
+    
     if (_isAdmin) {
       rowChildren.add(const SizedBox(width: 16));
       rowChildren.add(_amountCard("PineLab Amount", _PineLabsAmount));

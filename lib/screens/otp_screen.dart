@@ -10,7 +10,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 class OTPVerificationScreen extends StatefulWidget {
   final String phone;
   final bool otpLoginEnabled;
-  const OTPVerificationScreen({required this.phone, required this.otpLoginEnabled, super.key});
+  final bool signup;
+  const OTPVerificationScreen({required this.phone, required this.otpLoginEnabled,required this.signup, super.key});
 
   @override
   _OTPVerificationScreenState createState() => _OTPVerificationScreenState();
@@ -61,16 +62,25 @@ class _OTPVerificationScreenState extends State<OTPVerificationScreen> {
       );
 
       final data = jsonDecode(response.body);
+      print(data);
 
       if (response.statusCode == 200 && data['token'] != null) {
         final prefs = await SharedPreferences.getInstance();
         await prefs.setString('token', data['token']);
 
-        Navigator.pushReplacement(
+        if(widget.signup){
+         Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+              builder: (context) => SetPinScreen(phone: widget.phone, isChangePin: false)),
+        );
+        }else{
+          Navigator.pushReplacement(
           context,
           MaterialPageRoute(
               builder: (context) => DashboardScreen(phone: widget.phone)),
         );
+        }
       } else {
         _showMessage("Invalid OTP. Please try again.");
       }

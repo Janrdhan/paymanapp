@@ -29,7 +29,7 @@ class MyApp extends StatelessWidget {
     Widget defaultScreen = isOtpLoginEnabled
         ? const LoginScreen()
         : phone != null
-            ? OTPVerificationScreen(phone: phone!, otpLoginEnabled: isOtpLoginEnabled)
+            ? OTPVerificationScreen(phone: phone!, otpLoginEnabled: isOtpLoginEnabled, signup:false)
             : const LoginScreen();
 
     return MaterialApp(

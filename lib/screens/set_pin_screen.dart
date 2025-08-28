@@ -34,13 +34,13 @@ class _SetPinScreenState extends State<SetPinScreen> {
     final newPin = _pinController.text.trim();
     final confirmPin = _confirmController.text.trim();
 
-    if (widget.isChangePin && currentPin.length != 4) {
-      _showMessage("Current PIN must be exactly 4 digits.");
+    if (widget.isChangePin && currentPin.length != 6) {
+      _showMessage("Current PIN must be exactly 6 digits.");
       return;
     }
 
-    if (newPin.length != 4 || confirmPin.length != 4) {
-      _showMessage("New PIN and Confirm PIN must be exactly 4 digits.");
+    if (newPin.length != 6 || confirmPin.length != 6) {
+      _showMessage("New PIN and Confirm PIN must be exactly 6 digits.");
       return;
     }
 
@@ -109,7 +109,7 @@ class _SetPinScreenState extends State<SetPinScreen> {
               TextField(
                 controller: _currentPinController,
                 keyboardType: TextInputType.number,
-                maxLength: 4,
+                maxLength: 6,
                 obscureText: !_isPinVisible,
                 decoration: InputDecoration(
                   labelText: "Current PIN",
@@ -121,7 +121,7 @@ class _SetPinScreenState extends State<SetPinScreen> {
             TextField(
               controller: _pinController,
               keyboardType: TextInputType.number,
-              maxLength: 4,
+              maxLength: 6,
               obscureText: !_isPinVisible,
               decoration: InputDecoration(
                 labelText: "New PIN",
@@ -136,7 +136,7 @@ class _SetPinScreenState extends State<SetPinScreen> {
             TextField(
               controller: _confirmController,
               keyboardType: TextInputType.number,
-              maxLength: 4,
+              maxLength: 6,
               obscureText: !_isPinVisible,
               decoration: const InputDecoration(
                 labelText: "Confirm PIN",
