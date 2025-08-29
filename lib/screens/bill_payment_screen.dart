@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:dropdown_button2/dropdown_button2.dart';
 
 void main() {
   runApp(const MaterialApp(
@@ -23,51 +24,42 @@ class _BharatConnectScreenState extends State<BillPaymentScreen> {
     return DefaultTabController(
       length: 4, // Total number of tabs
       child: Scaffold(
-         backgroundColor: Colors.white,
+        backgroundColor: Colors.white,
         appBar: AppBar(
-           automaticallyImplyLeading: false,
-            backgroundColor: const Color.fromARGB(255, 148, 200, 242),
-             title: Row(
-    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-    children: [
-      const Text(
-        'Bharat Connect Billers',
-        style: TextStyle(fontSize: 18,color: Colors.white),
-      ),
-      Image.asset(
-        'assets/images/Bharat Connect Primary Logo_PNG.png',
-        height: 32,
-      ),
-    ],
-  ),
+          automaticallyImplyLeading: false,
+          backgroundColor: const Color.fromARGB(255, 148, 200, 242),
+          title: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text(
+                'Bharat Connect Billers',
+                style: TextStyle(fontSize: 18, color: Colors.white),
+              ),
+              Image.asset(
+                'assets/images/Bharat Connect Primary Logo_PNG.png',
+                height: 32,
+              ),
+            ],
+          ),
+          bottom: const TabBar(
+            isScrollable: true,
+            labelColor: Colors.blue,
+            unselectedLabelColor: Colors.white70,
+            indicatorColor: Colors.white,
+            tabs: [
+              Tab(text: 'Bharat Connect Biller'),
+              Tab(text: 'Query Transaction'),
+              Tab(text: 'Raise Complaint'),
+              Tab(text: 'Check Complaint Status'),
+            ],
+          ),
         ),
-        body: Column(
+        body: const TabBarView(
           children: [
-            Container(
-              color: Colors.grey[200], // Optional: change tab bar background
-              child: const TabBar(
-                isScrollable: true,
-                labelColor: Colors.blue,
-                unselectedLabelColor: Colors.black54,
-                indicatorColor: Colors.blue,
-                tabs: [
-                  Tab(text: 'Bharat Connect Biller'),
-                  Tab(text: 'Query Transaction'),
-                  Tab(text: 'Raise Complaint'),
-                  Tab(text: 'Check Complaint Status'),
-                ],
-              ),
-            ),
-            const Expanded(
-              child: TabBarView(
-                children: [
-                  BharatConnectBillerTab(),
-                  QueryTransactionTab(),
-                  RaiseComplaintTab(),
-                  CheckComplaintStatusTab(),
-                ],
-              ),
-            ),
+            BharatConnectBillerTab(),
+            QueryTransactionTab(),
+            RaiseComplaintTab(),
+            CheckComplaintStatusTab(),
           ],
         ),
       ),
@@ -114,200 +106,96 @@ class _BharatConnectBillerTabState extends State<BharatConnectBillerTab> {
           categories = data;
         });
       } else {
+        // ignore: avoid_print
         print('Failed to load categories');
       }
     } catch (e) {
+      // ignore: avoid_print
       print('Error fetching categories: $e');
     }
   }
-  void showPaymentConfirmationDialog() async {
-  final player = AudioPlayer();
-  await player.play(AssetSource('sounds/BharatConnect MOGO 270824.mp3')); // Play success sound
 
-  showDialog(
-    context: context,
-    builder: (BuildContext context) {
-      return AlertDialog(
-        titlePadding: const EdgeInsets.all(0),
-        contentPadding: const EdgeInsets.all(16),
-        title: Container(
-          color: Colors.blue.shade50,
-          padding: const EdgeInsets.all(12),
-          child: Row(
-            children: [
-              Expanded(
-                child: Text(
-                  "Bharath Connect - Payment Confirmation",
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.blue.shade700,
+  void showPaymentConfirmationDialog() {
+    final player = AudioPlayer();
+    // Play sound without awaiting, so it starts instantly with dialog
+    player.play(AssetSource('sounds/BharatConnect MOGO 270824.mp3'));
+
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          titlePadding: const EdgeInsets.all(0),
+          contentPadding: const EdgeInsets.all(16),
+          title: Container(
+            color: Colors.blue.shade50,
+            padding: const EdgeInsets.all(12),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    "Bharat Connect - Payment Confirmation",
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.blue.shade700,
+                    ),
                   ),
                 ),
-              ),
-              Image.asset(
-                'assets/images/B Assured Logo_JPG.jpg', // Your logo image
-                height: 32,
-              ),
-            ],
+                Image.asset(
+                  'assets/images/B Assured Logo_PNG.png', // B Assured logo
+                  height: 50,
+                ),
+              ],
+            ),
           ),
-        ),
-        content: SingleChildScrollView(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Text(
-                "Thank You. We have received your payment request.\nPlease quote your Transaction Reference ID for any queries regarding the payment.",
-                style: TextStyle(fontWeight: FontWeight.w500),
-              ),
-              const SizedBox(height: 16),
-              Table(
-                columnWidths: const {
-                  0: IntrinsicColumnWidth(),
-                  1: FlexColumnWidth(),
-                },
-                children: const [
-                  TableRow(children: [
-                    Padding(
-                      padding: EdgeInsets.symmetric(vertical: 4),
-                      child: Text("Name of the biller:"),
-                    ),
-                    Padding(
-                      padding: EdgeInsets.symmetric(vertical: 4),
-                      child: Text("Credit Card"),
-                    ),
-                  ]),
-                  TableRow(children: [
-                    Padding(
-                      padding: EdgeInsets.symmetric(vertical: 4),
-                      child: Text("Mobile number:"),
-                    ),
-                    Padding(
-                      padding: EdgeInsets.symmetric(vertical: 4),
-                      child: Text("9849800697"),
-                    ),
-                  ]),
-                  TableRow(children: [
-                    Padding(
-                      padding: EdgeInsets.symmetric(vertical: 4),
-                      child: Text("Bill Number:"),
-                    ),
-                    Padding(
-                      padding: EdgeInsets.symmetric(vertical: 4),
-                      child: Text("BILL123456"),
-                    ),
-                  ]),
-                  TableRow(children: [
-                    Padding(
-                      padding: EdgeInsets.symmetric(vertical: 4),
-                      child: Text("Bill Date:"),
-                    ),
-                    Padding(
-                      padding: EdgeInsets.symmetric(vertical: 4),
-                      child: Text("02-08-2025"),
-                    ),
-                  ]),
-                  TableRow(children: [
-                    Padding(
-                      padding: EdgeInsets.symmetric(vertical: 4),
-                      child: Text("Bill Due Date:"),
-                    ),
-                    Padding(
-                      padding: EdgeInsets.symmetric(vertical: 4),
-                      child: Text("09-08-2025"),
-                    ),
-                  ]),
-                  TableRow(children: [
-                    Padding(
-                      padding: EdgeInsets.symmetric(vertical: 4),
-                      child: Text("B-Connect Txn ID:"),
-                    ),
-                    Padding(
-                      padding: EdgeInsets.symmetric(vertical: 4),
-                      child: Text("TXN4202526"),
-                    ),
-                  ]),
-                  TableRow(children: [
-                    Padding(
-                      padding: EdgeInsets.symmetric(vertical: 4),
-                      child: Text("Customer Convenience Fee:"),
-                    ),
-                    Padding(
-                      padding: EdgeInsets.symmetric(vertical: 4),
-                      child: Text("7.00"),
-                    ),
-                  ]),
-                  TableRow(children: [
-                    Padding(
-                      padding: EdgeInsets.symmetric(vertical: 4),
-                      child: Text("Registered Mobile Number:"),
-                    ),
-                    Padding(
-                      padding: EdgeInsets.symmetric(vertical: 4),
-                      child: Text("9849800697"),
-                    ),
-                  ]),
-                  TableRow(children: [
-                    Padding(
-                      padding: EdgeInsets.symmetric(vertical: 4),
-                      child: Text("Bill Amount:"),
-                    ),
-                    Padding(
-                      padding: EdgeInsets.symmetric(vertical: 4),
-                      child: Text("450.00"),
-                    ),
-                  ]),
-                  TableRow(children: [
-                    Padding(
-                      padding: EdgeInsets.symmetric(vertical: 4),
-                      child: Text("Total Amount:"),
-                    ),
-                    Padding(
-                      padding: EdgeInsets.symmetric(vertical: 4),
-                      child: Text("450.00"),
-                    ),
-                  ]),
-                  TableRow(children: [
-                    Padding(
-                      padding: EdgeInsets.symmetric(vertical: 4),
-                      child: Text("Transaction Date and Time:"),
-                    ),
-                    Padding(
-                      padding: EdgeInsets.symmetric(vertical: 4),
-                      child: Text("02-08-2025 10:26:16"),
-                    ),
-                  ]),
-                  TableRow(children: [
-                    Padding(
-                      padding: EdgeInsets.symmetric(vertical: 4),
-                      child: Text(
-                        "Status:",
-                        style: TextStyle(fontWeight: FontWeight.bold),
-                      ),
-                    ),
-                    Padding(
-                      padding: EdgeInsets.symmetric(vertical: 4),
-                      child: Text(
-                        "PAID",
-                        style: TextStyle(color: Colors.green, fontWeight: FontWeight.bold),
-                      ),
-                    ),
-                  ]),
-                ],
-              ),
-            ],
+          content: SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  "Payment Successful!\nThank you for your payment.",
+                  style: TextStyle(fontWeight: FontWeight.w600),
+                ),
+                const SizedBox(height: 10),
+                Image.asset(
+                  'assets/images/B Assured Logo_PNG.png', // Large B Assured display
+                  height: 60,
+                ),
+                const SizedBox(height: 16),
+                const Text(
+                  "We have received your payment request.\nPlease quote your Transaction Reference ID for any queries.",
+                  style: TextStyle(fontWeight: FontWeight.w500),
+                ),
+                const SizedBox(height: 16),
+                // your details table can be added here
+              ],
+            ),
           ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Close'),
-          ),
-        ],
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Close'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  InputDecoration _ddDecoration(String label) => InputDecoration(
+        labelText: label,
+        border: const OutlineInputBorder(),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
       );
-    },
-  );
-}
+
+  DropdownStyleData get _dropdownStyle => DropdownStyleData(
+        maxHeight: 320,
+        isOverButton: false, // ensure menu opens below, not covering the field
+        offset: const Offset(0, 4), // tiny gap from the field
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(8),
+        ),
+      );
 
   @override
   Widget build(BuildContext context) {
@@ -315,8 +203,10 @@ class _BharatConnectBillerTabState extends State<BharatConnectBillerTab> {
       padding: const EdgeInsets.all(16.0),
       child: Column(
         children: [
-          DropdownButtonFormField<String>(
+          DropdownButtonFormField2<String>(
+            isExpanded: true,
             value: selectedCategory,
+            decoration: _ddDecoration("Select Biller Category"),
             hint: const Text("Select Biller Category"),
             items: categories.map<DropdownMenuItem<String>>((item) {
               return DropdownMenuItem<String>(
@@ -332,13 +222,20 @@ class _BharatConnectBillerTabState extends State<BharatConnectBillerTab> {
                 billFetched = false;
               });
             },
+            dropdownStyleData: _dropdownStyle,
+            menuItemStyleData: const MenuItemStyleData(
+              height: 44,
+              padding: EdgeInsets.symmetric(horizontal: 12),
+            ),
           ),
 
           const SizedBox(height: 16),
 
           if (selectedCategory == "OU12BB000NATKB")
-            DropdownButtonFormField<String>(
+            DropdownButtonFormField2<String>(
+              isExpanded: true,
               value: selectedBiller,
+              decoration: _ddDecoration("Select Credit Card Biller"),
               hint: const Text("Select Credit Card Biller"),
               items: creditCardBillers.map((biller) {
                 return DropdownMenuItem(
@@ -353,6 +250,11 @@ class _BharatConnectBillerTabState extends State<BharatConnectBillerTab> {
                   billFetched = false;
                 });
               },
+              dropdownStyleData: _dropdownStyle,
+              menuItemStyleData: const MenuItemStyleData(
+                height: 44,
+                padding: EdgeInsets.symmetric(horizontal: 12),
+              ),
             ),
 
           const SizedBox(height: 16),
@@ -360,35 +262,39 @@ class _BharatConnectBillerTabState extends State<BharatConnectBillerTab> {
           if (showInputs) ...[
             TextField(
               controller: lastFourController,
-              decoration: const InputDecoration(labelText: "Last 4 Digits of Card"),
+              decoration: const InputDecoration(labelText: "Last 4 Digits of Card", border: OutlineInputBorder()),
               keyboardType: TextInputType.number,
               maxLength: 4,
             ),
+            const SizedBox(height: 12),
             TextField(
               controller: registeredMobileController,
-              decoration: const InputDecoration(labelText: "Registered Mobile"),
+              decoration: const InputDecoration(labelText: "Registered Mobile", border: OutlineInputBorder()),
               keyboardType: TextInputType.phone,
             ),
+            const SizedBox(height: 12),
             TextField(
               controller: customerMobileController,
-              decoration: const InputDecoration(labelText: "Customer Number"),
+              decoration: const InputDecoration(labelText: "Customer Number", border: OutlineInputBorder()),
               keyboardType: TextInputType.phone,
             ),
 
-            if (billFetched)
+            if (billFetched) ...[
+              const SizedBox(height: 12),
               TextField(
                 controller: amountController,
-                decoration: const InputDecoration(labelText: "Amount"),
+                decoration: const InputDecoration(labelText: "Amount", border: OutlineInputBorder()),
                 keyboardType: TextInputType.number,
                 readOnly: true,
               ),
+            ],
 
             const SizedBox(height: 20),
 
             if (!billFetched)
               ElevatedButton(
                 onPressed: () {
-                  // You can implement real API call here
+                  // Implement real API call here if needed, then:
                   setState(() {
                     billFetched = true;
                   });
@@ -411,9 +317,7 @@ class _BharatConnectBillerTabState extends State<BharatConnectBillerTab> {
             const Text("Status: Pending"),
             const SizedBox(height: 20),
             ElevatedButton(
-              onPressed: () {
-                showPaymentConfirmationDialog();
-              },
+              onPressed: showPaymentConfirmationDialog,
               child: const Text("Process Payment"),
             ),
           ]
@@ -545,8 +449,6 @@ class _QueryTransactionTabState extends State<QueryTransactionTab> {
 
 // ================= Tab 3: Raise Complaint =================
 
-// ================= Tab 3: Raise Complaint =================
-
 class RaiseComplaintTab extends StatefulWidget {
   const RaiseComplaintTab({super.key});
 
@@ -607,6 +509,19 @@ class _RaiseComplaintTabState extends State<RaiseComplaintTab> {
     );
   }
 
+  InputDecoration _ddDecoration(String label) => InputDecoration(
+        labelText: label,
+        border: const OutlineInputBorder(),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+      );
+
+  DropdownStyleData get _dropdownStyle => DropdownStyleData(
+        maxHeight: 320,
+        isOverButton: false,
+        offset: const Offset(0, 4),
+        decoration: BoxDecoration(borderRadius: BorderRadius.circular(8)),
+      );
+
   @override
   Widget build(BuildContext context) {
     return SingleChildScrollView(
@@ -620,7 +535,6 @@ class _RaiseComplaintTabState extends State<RaiseComplaintTab> {
           ),
           const SizedBox(height: 20),
 
-          // Mobile Number
           TextField(
             controller: mobileController,
             decoration: const InputDecoration(
@@ -631,13 +545,10 @@ class _RaiseComplaintTabState extends State<RaiseComplaintTab> {
           ),
           const SizedBox(height: 16),
 
-          // Type of Complaint
-          DropdownButtonFormField<String>(
+          DropdownButtonFormField2<String>(
             value: selectedComplaintType,
-            decoration: const InputDecoration(
-              labelText: "Type of Complaint",
-              border: OutlineInputBorder(),
-            ),
+            isExpanded: true,
+            decoration: _ddDecoration("Type of Complaint"),
             items: const [
               DropdownMenuItem(value: "Service", child: Text("Service")),
               DropdownMenuItem(value: "Technical", child: Text("Technical")),
@@ -647,19 +558,17 @@ class _RaiseComplaintTabState extends State<RaiseComplaintTab> {
                 selectedComplaintType = value!;
               });
             },
+            dropdownStyleData: _dropdownStyle,
+            menuItemStyleData: const MenuItemStyleData(height: 44),
           ),
 
           const SizedBox(height: 16),
 
-          // Complaint Disposition (Full width, long text support)
-          DropdownButtonFormField<String>(
+          DropdownButtonFormField2<String>(
             value: selectedDisposition,
-            decoration: const InputDecoration(
-              labelText: "Complaint Disposition",
-              border: OutlineInputBorder(),
-            ),
-            hint: const Text("Select"),
             isExpanded: true,
+            decoration: _ddDecoration("Complaint Disposition"),
+            hint: const Text("Select"),
             items: complaintDispositions.map((disposition) {
               return DropdownMenuItem(
                 value: disposition,
@@ -675,11 +584,12 @@ class _RaiseComplaintTabState extends State<RaiseComplaintTab> {
                 selectedDisposition = value;
               });
             },
+            dropdownStyleData: _dropdownStyle,
+            menuItemStyleData: const MenuItemStyleData(height: 48),
           ),
 
           const SizedBox(height: 20),
 
-          // From and To Dates
           Row(
             children: [
               Expanded(
@@ -720,16 +630,13 @@ class _RaiseComplaintTabState extends State<RaiseComplaintTab> {
 
           const SizedBox(height: 16),
 
-          // Service Reason + Description
           Row(
             children: [
               Expanded(
-                child: DropdownButtonFormField<String>(
+                child: DropdownButtonFormField2<String>(
                   value: selectedServiceReason,
-                  decoration: const InputDecoration(
-                    labelText: "Service Reason",
-                    border: OutlineInputBorder(),
-                  ),
+                  isExpanded: true,
+                  decoration: _ddDecoration("Service Reason"),
                   hint: const Text("-- Select Service Reason --"),
                   items: serviceReasons.map((reason) {
                     return DropdownMenuItem(
@@ -742,6 +649,8 @@ class _RaiseComplaintTabState extends State<RaiseComplaintTab> {
                       selectedServiceReason = value;
                     });
                   },
+                  dropdownStyleData: _dropdownStyle,
+                  menuItemStyleData: const MenuItemStyleData(height: 44),
                 ),
               ),
               const SizedBox(width: 16),
@@ -760,7 +669,6 @@ class _RaiseComplaintTabState extends State<RaiseComplaintTab> {
 
           const SizedBox(height: 20),
 
-          // Submit Button
           SizedBox(
             width: double.infinity,
             child: ElevatedButton(
@@ -773,8 +681,6 @@ class _RaiseComplaintTabState extends State<RaiseComplaintTab> {
     );
   }
 }
-
-
 
 // ================= Tab 4: Check Complaint Status =================
 
@@ -798,6 +704,19 @@ class _CheckComplaintStatusTabState extends State<CheckComplaintStatusTab> {
       showResult = true;
     });
   }
+
+  InputDecoration _ddDecoration(String label) => InputDecoration(
+        labelText: label,
+        border: const OutlineInputBorder(),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+      );
+
+  DropdownStyleData get _dropdownStyle => DropdownStyleData(
+        maxHeight: 320,
+        isOverButton: false,
+        offset: const Offset(0, 4),
+        decoration: BoxDecoration(borderRadius: BorderRadius.circular(8)),
+      );
 
   @override
   Widget build(BuildContext context) {
@@ -825,12 +744,10 @@ class _CheckComplaintStatusTabState extends State<CheckComplaintStatusTab> {
               ),
               const SizedBox(width: 16),
               Expanded(
-                child: DropdownButtonFormField<String>(
+                child: DropdownButtonFormField2<String>(
+                  isExpanded: true,
                   value: selectedComplaintType,
-                  decoration: const InputDecoration(
-                    labelText: "Type of Complaint",
-                    border: OutlineInputBorder(),
-                  ),
+                  decoration: _ddDecoration("Type of Complaint"),
                   items: const [
                     DropdownMenuItem(
                       value: "Service Request",
@@ -846,6 +763,8 @@ class _CheckComplaintStatusTabState extends State<CheckComplaintStatusTab> {
                       selectedComplaintType = value!;
                     });
                   },
+                  dropdownStyleData: _dropdownStyle,
+                  menuItemStyleData: const MenuItemStyleData(height: 44),
                 ),
               ),
             ],
@@ -924,4 +843,3 @@ class _CheckComplaintStatusTabState extends State<CheckComplaintStatusTab> {
     );
   }
 }
-

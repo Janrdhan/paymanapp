@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:paymanapp/screens/bank_list.dart';
+import 'package:paymanapp/screens/bill_payment_screen.dart';
 import 'package:paymanapp/screens/payin.dart';
 import 'package:paymanapp/screens/tokenvalidator.dart';
 import 'package:paymanapp/screens/user_profile_screen.dart';
@@ -223,7 +224,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   List<String> _buildFinanceLabels() {
     List<String> labels = [];
     if (_payIn) labels.add('Pay In');
-    labels.add('Credit card');
+    labels.add('Bill Payments');
     labels.add('Loan repayment');
     labels.add('LIC / insurance');
     labels.add('Recurring deposit');
@@ -234,7 +235,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   List<IconData> _buildFinanceIcons() {
     List<IconData> icons = [];
     if (_payIn) icons.add(Icons.arrow_downward);
-    icons.add(Icons.credit_card);
+    icons.add(Icons.payment);
     icons.add(Icons.savings);
     icons.add(Icons.verified_user);
     icons.add(Icons.calendar_today);
@@ -264,6 +265,18 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
+  Widget _buildServiceIcon(String label, IconData icon) {
+    if (label == 'Bill Payments') {
+      return Image.asset(
+        'assets/images/B mnemonic_PNG.png',
+        width: 26,
+        height: 26,
+      );
+    } else {
+      return Icon(icon, size: 26, color: Colors.blue.shade900);
+    }
+  }
+
   Widget _buildServiceSection(String title, List<String> labels, List<IconData> icons) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8),
@@ -290,7 +303,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     Navigator.push(context, MaterialPageRoute(builder: (_) => PayInScreen(phone: widget.phone)));
                   } else if (labels[index] == 'CC Bill') {
                     Navigator.push(context, MaterialPageRoute(builder: (_) => CreditCardBillersScreen(phone: widget.phone)));
-                  } else {
+                  }else if (labels[index] == 'Bill Payments') {
+    Navigator.push(context, MaterialPageRoute(builder: (_) => const BillPaymentScreen()));
+  }  else {
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(content: Text("${labels[index]} tapped")),
                     );
@@ -314,7 +329,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         color: Colors.blue.withOpacity(0.1),
                       ),
                       padding: const EdgeInsets.all(12),
-                      child: Icon(icons[index], size: 26, color: Colors.blue.shade900),
+                      child: _buildServiceIcon(labels[index], icons[index]),
                     ),
                     const SizedBox(height: 6),
                     Text(

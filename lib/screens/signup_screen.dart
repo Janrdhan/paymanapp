@@ -68,7 +68,11 @@ class _SignupScreenState extends State<SignupScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("Sign Up")),
+      backgroundColor: Colors.white,
+      appBar: AppBar(
+        automaticallyImplyLeading: false,
+        backgroundColor: Colors.blue.shade700,
+        title: const Text("Sign Up")),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(20),
         child: Form(
