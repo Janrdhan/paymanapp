@@ -230,7 +230,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                                 Navigator.push(
                                   context,
                                   MaterialPageRoute(
-                                    builder: (_) => AadharVerificationScreen(phone: widget.phone),
+                                    builder: (_) => AadharVerificationScreen(phone: widget.phone, customerType: _CustomerType),
                                   ),
                                 );
                               },

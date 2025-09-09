@@ -1,212 +1,85 @@
-import 'package:flutter/material.dart';
 import 'package:audioplayers/audioplayers.dart';
-import 'package:paymanapp/screens/dashboard_screen.dart';
+import 'package:flutter/material.dart';
+import 'dashboard_screen.dart'; // your dashboard screen import
 
 class PaymentSuccessScreen extends StatefulWidget {
-  const PaymentSuccessScreen({
-    super.key,
-    required this.phone,
-    required this.amount,
-    required this.userName,
-  });
-
   final String phone;
   final String amount;
   final String userName;
 
+  const PaymentSuccessScreen({
+    Key? key,
+    required this.phone,
+    required this.amount,
+    required this.userName,
+  }) : super(key: key);
+
   @override
-  _PaymentSuccessScreenState createState() => _PaymentSuccessScreenState();
+  State<PaymentSuccessScreen> createState() => _PaymentSuccessScreenState();
 }
 
 class _PaymentSuccessScreenState extends State<PaymentSuccessScreen> {
   final AudioPlayer _audioPlayer = AudioPlayer();
-  bool _navigated = false; // prevent multiple navigations
-
   @override
   void initState() {
     super.initState();
+
+  // Play success sound
     _playSuccessSound();
-    _navigateToDashboard(); // auto after 5 seconds
+    // Auto-redirect to dashboard after 5 seconds
+    Future.delayed(const Duration(seconds: 5), () {
+      _goToDashboard();
+    });
   }
 
   Future<void> _playSuccessSound() async {
-    await _audioPlayer.play(AssetSource('sounds/success-340660.mp3'));
-  }
-
-  void _navigateToDashboard({bool immediate = false}) {
-    if (_navigated) return; // avoid duplicate navigation
-    _navigated = true;
-
-    if (immediate) {
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(
-          builder: (context) => DashboardScreen(phone: widget.phone),
-        ),
-      );
-    } else {
-      Future.delayed(const Duration(seconds: 5), () {
-        if (mounted) {
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(
-              builder: (context) => DashboardScreen(phone: widget.phone),
-            ),
-          );
-        }
-      });
+    try {
+      await _audioPlayer.play(AssetSource('sounds/success-340660.mp3'));
+    } catch (e) {
+      print("Error playing success sound: $e");
     }
   }
 
-  String _maskPhone(String phone) {
-    if (phone.length < 4) return phone;
-    return 'XXXXXXXX${phone.substring(phone.length - 4)}';
+  void _goToDashboard() {
+    Navigator.of(context).pushAndRemoveUntil(
+      MaterialPageRoute(
+        builder: (context) => DashboardScreen(phone: widget.phone),
+      ),
+      (Route<dynamic> route) => false, // removes all previous routes
+    );
   }
 
   @override
   Widget build(BuildContext context) {
-    final time = DateTime.now();
     return WillPopScope(
       onWillPop: () async {
-        _navigateToDashboard(immediate: true); // go to dashboard immediately
-        return false; // prevent default back pop
+        _goToDashboard(); // force navigation to dashboard on back press
+        return false; // prevent default back navigation
       },
       child: Scaffold(
-        backgroundColor: const Color(0xFF1BB66D),
-        body: SafeArea(
+        backgroundColor: Colors.white,
+        body: Center(
           child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const SizedBox(height: 40),
-              const Icon(Icons.check_circle, size: 90, color: Colors.white),
-              const SizedBox(height: 10),
+              const Icon(Icons.check_circle, color: Colors.green, size: 100),
+              const SizedBox(height: 20),
               const Text(
                 "Payment Successful",
-                style: TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 22),
+                style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
               ),
-              const SizedBox(height: 6),
-              Text(
-                "${time.day} ${_monthName(time.month)} ${time.year} at ${_formatTime(time)}",
-                style: const TextStyle(color: Colors.white70, fontSize: 14),
-              ),
+              const SizedBox(height: 10),
+              Text("Amount: ₹${widget.amount}",
+                  style: const TextStyle(fontSize: 18)),
               const SizedBox(height: 30),
-              _buildUserCard(),
-              const SizedBox(height: 20),
-              _buildActionButtons(),
+              ElevatedButton(
+                onPressed: _goToDashboard, // navigate and clear stack
+                child: const Text("Go to Dashboard"),
+              ),
             ],
           ),
         ),
       ),
     );
-  }
-
-  Widget _buildUserCard() {
-    return Card(
-      margin: const EdgeInsets.symmetric(horizontal: 16),
-      color: Colors.black87,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-        child: Column(
-          children: [
-            Row(
-              children: [
-                const CircleAvatar(
-                  radius: 22,
-                  backgroundColor: Colors.purple,
-                  child: Icon(Icons.person, color: Colors.white),
-                ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: Text(
-                    widget.userName.toUpperCase(),
-                    style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold),
-                  ),
-                ),
-                Text(
-                  _maskPhone(widget.phone),
-                  style: const TextStyle(color: Colors.white70),
-                ),
-              ],
-            ),
-            const SizedBox(height: 10),
-            Row(
-              children: [
-                Text(
-                  "₹${widget.amount}",
-                  style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold),
-                ),
-                const Spacer(),
-                const Text(
-                  "Split Expense",
-                  style: TextStyle(color: Colors.purpleAccent),
-                )
-              ],
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildActionButtons() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 24.0),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceAround,
-        children: [
-          _actionButton(Icons.info, "View Details"),
-          _actionButton(Icons.share, "Share Receipt"),
-        ],
-      ),
-    );
-  }
-
-  Widget _actionButton(IconData icon, String label) {
-    return Column(
-      children: [
-        CircleAvatar(
-          backgroundColor: Colors.purple,
-          radius: 24,
-          child: Icon(icon, color: Colors.white),
-        ),
-        const SizedBox(height: 6),
-        Text(label, style: const TextStyle(color: Colors.white))
-      ],
-    );
-  }
-
-  static String _monthName(int month) {
-    const months = [
-      '',
-      'Jan',
-      'Feb',
-      'Mar',
-      'Apr',
-      'May',
-      'Jun',
-      'Jul',
-      'Aug',
-      'Sep',
-      'Oct',
-      'Nov',
-      'Dec'
-    ];
-    return months[month];
-  }
-
-  static String _formatTime(DateTime time) {
-    int hour = time.hour;
-    String meridiem = hour >= 12 ? 'PM' : 'AM';
-    hour = hour % 12 == 0 ? 12 : hour % 12;
-    return "${hour.toString().padLeft(2, '0')}:${time.minute.toString().padLeft(2, '0')} $meridiem";
   }
 }

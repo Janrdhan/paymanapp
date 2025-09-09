@@ -7,7 +7,8 @@ import 'package:paymanapp/widgets/api_handler.dart';
 
 class AadharVerificationScreen extends StatefulWidget {
   final String phone;
-  const AadharVerificationScreen({required this.phone,super.key});
+  final String customerType;
+  const AadharVerificationScreen({required this.phone,required this.customerType ,super.key});
 
   @override
   State<AadharVerificationScreen> createState() => _AadharVerificationScreenState();
@@ -21,6 +22,7 @@ class _AadharVerificationScreenState extends State<AadharVerificationScreen> {
   bool _isLoading = false;
   bool _isOtpSent = false;
   bool _isOtpVerified = false;
+  String _customerType = "N/A";
 
   XFile? _aadharFrontImage;
   XFile? _aadharBackImage;
@@ -103,41 +105,55 @@ class _AadharVerificationScreenState extends State<AadharVerificationScreen> {
   }
 
   // Verify OTP API call
-  Future<void> verifyOtp() async {
-    final otp = _otpController.text.trim();
+ Future<void> verifyOtp() async {
+  final otp = _otpController.text.trim();
 
-    if (otp.isEmpty || otp.length != 6) {
-      _showMessage("Please enter a valid 6-digit OTP.");
-      return;
-    }
-
-    setState(() => _isLoading = true);
-
-    try {
-      print("Response refid: $_refId");
-      final url = Uri.parse('${ApiHandler.baseUri}/Auth/VerifyAdharOTP'); // Replace with actual API URL
-      final response = await http.post(
-        url,
-        headers: {"Content-Type": "application/json"},
-        body: jsonEncode({"refId": _refId, "otp": otp,"phone": widget.phone}),
-      );
-
-      final data = jsonDecode(response.body);
-
-      if (response.statusCode == 200 && data['success'] == true) {
-        setState(() {
-          _isOtpVerified = true;
-        });
-        _showMessage("OTP verified successfully.");
-      } else {
-        _showMessage(data['message'] ?? "Failed to verify OTP. Please try again.");
-      }
-    } catch (e) {
-      _showMessage("Something went wrong. Please try again.");
-    } finally {
-      setState(() => _isLoading = false);
-    }
+  if (otp.isEmpty || otp.length != 6) {
+    _showMessage("Please enter a valid 6-digit OTP.");
+    return;
   }
+
+  setState(() => _isLoading = true);
+
+  try {
+    print("Response refid: $_refId");
+    final url = Uri.parse('${ApiHandler.baseUri}/Auth/VerifyAdharOTP');
+    final response = await http.post(
+      url,
+      headers: {"Content-Type": "application/json"},
+      body: jsonEncode({"refId": _refId, "otp": otp, "phone": widget.phone}),
+    );
+
+    final data = jsonDecode(response.body);
+
+    if (response.statusCode == 200 && data['success'] == true) {
+      setState(() {
+        _isOtpVerified = true;
+      });
+
+      _showMessage("OTP verified successfully.");
+
+      // 🚀 If customerType == "new", go directly to Dashboard
+      if (widget.customerType.toLowerCase() == "new") {
+        Future.delayed(const Duration(seconds: 1), () {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+              builder: (context) => DashboardScreen(phone: widget.phone),
+            ),
+          );
+        });
+        return; // stop here, don’t show document upload
+      }
+    } else {
+      _showMessage(data['message'] ?? "Failed to verify OTP. Please try again.");
+    }
+  } catch (e) {
+    _showMessage("Something went wrong. Please try again.");
+  } finally {
+    setState(() => _isLoading = false);
+  }
+}
 
   Future<void> uploadDocuments() async {
     if (!_isOtpVerified) {
@@ -225,28 +241,31 @@ class _AadharVerificationScreenState extends State<AadharVerificationScreen> {
               ),
             ],
             if (_isOtpVerified) ...[
-              TextField(
-                controller: _panCardController,
-                decoration: const InputDecoration(labelText: "PAN Card Number"),
-              ),
-              ElevatedButton(
-                onPressed: () => _pickImage('aadharFront'),
-                child: Text(_aadharFrontImage != null ? "Aadhar Front ✅" : "Upload Aadhar Front"),
-              ),
-              ElevatedButton(
-                onPressed: () => _pickImage('aadharBack'),
-                child: Text(_aadharBackImage != null ? "Aadhar Back ✅" : "Upload Aadhar Back"),
-              ),
-              ElevatedButton(
-                onPressed: () => _pickImage('panCard'),
-                child: Text(_panCardImage != null ? "PAN Card ✅" : "Upload PAN Card"),
-              ),
-              const SizedBox(height: 16),
-              ElevatedButton(
-                onPressed: uploadDocuments,
-                child: const Text("Upload All Documents"),
-              ),
-            ],
+  // Show PAN + Docs only if NOT "new"
+  if (widget.customerType.toLowerCase() != "new") ...[
+    TextField(
+      controller: _panCardController,
+      decoration: const InputDecoration(labelText: "PAN Card Number"),
+    ),
+    ElevatedButton(
+      onPressed: () => _pickImage('aadharFront'),
+      child: Text(_aadharFrontImage != null ? "Aadhar Front ✅" : "Upload Aadhar Front"),
+    ),
+    ElevatedButton(
+      onPressed: () => _pickImage('aadharBack'),
+      child: Text(_aadharBackImage != null ? "Aadhar Back ✅" : "Upload Aadhar Back"),
+    ),
+    ElevatedButton(
+      onPressed: () => _pickImage('panCard'),
+      child: Text(_panCardImage != null ? "PAN Card ✅" : "Upload PAN Card"),
+    ),
+    const SizedBox(height: 16),
+    ElevatedButton(
+      onPressed: uploadDocuments,
+      child: const Text("Upload All Documents"),
+    ),
+  ],
+],
             if (_isLoading) const CircularProgressIndicator(),
           ],
         ),

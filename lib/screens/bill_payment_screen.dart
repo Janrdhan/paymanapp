@@ -36,9 +36,11 @@ class _BharatConnectScreenState extends State<BillPaymentScreen> {
                 style: TextStyle(fontSize: 18, color: Colors.white),
               ),
               Image.asset(
-                'assets/images/Bharat Connect Primary Logo_PNG.png',
-                height: 32,
-              ),
+        'assets/images/Bharat Connect Primary Logo_PNG.png',
+        height: 30, // ✅ Fixed 30px
+        width: 30,  // ✅ Keep square aspect ratio
+        fit: BoxFit.contain, // ✅ Prevent distortion
+      ),
             ],
           ),
           bottom: const TabBar(
@@ -121,65 +123,190 @@ class _BharatConnectBillerTabState extends State<BharatConnectBillerTab> {
     player.play(AssetSource('sounds/BharatConnect MOGO 270824.mp3'));
 
     showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          titlePadding: const EdgeInsets.all(0),
-          contentPadding: const EdgeInsets.all(16),
-          title: Container(
-            color: Colors.blue.shade50,
-            padding: const EdgeInsets.all(12),
-            child: Row(
-              children: [
-                Expanded(
-                  child: Text(
-                    "Bharat Connect - Payment Confirmation",
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.blue.shade700,
-                    ),
+    context: context,
+    builder: (BuildContext context) {
+      return AlertDialog(
+        titlePadding: const EdgeInsets.all(0),
+        contentPadding: const EdgeInsets.all(16),
+        title: Container(
+          color: Colors.blue.shade50,
+          padding: const EdgeInsets.all(12),
+          child: Row(
+            children: [
+              Expanded(
+                child: Text(
+                  "Bharath Connect - Payment Confirmation",
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.blue.shade700,
                   ),
                 ),
-                Image.asset(
-                  'assets/images/B Assured Logo_PNG.png', // B Assured logo
-                  height: 50,
-                ),
-              ],
-            ),
+              ),
+              Image.asset(
+  'assets/images/B Assured Logo_PNG.png',
+  height: 30,
+  width: 30,
+  fit: BoxFit.contain,
+)
+            ],
           ),
-          content: SingleChildScrollView(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  "Payment Successful!\nThank you for your payment.",
-                  style: TextStyle(fontWeight: FontWeight.w600),
-                ),
-                const SizedBox(height: 10),
-                Image.asset(
-                  'assets/images/B Assured Logo_PNG.png', // Large B Assured display
-                  height: 60,
-                ),
-                const SizedBox(height: 16),
-                const Text(
-                  "We have received your payment request.\nPlease quote your Transaction Reference ID for any queries.",
-                  style: TextStyle(fontWeight: FontWeight.w500),
-                ),
-                const SizedBox(height: 16),
-                // your details table can be added here
-              ],
-            ),
+        ),
+        content: SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                "Thank You. We have received your payment request.\nPlease quote your Transaction Reference ID for any queries regarding the payment.",
+                style: TextStyle(fontWeight: FontWeight.w500),
+              ),
+              const SizedBox(height: 16),
+              Table(
+                columnWidths: const {
+                  0: IntrinsicColumnWidth(),
+                  1: FlexColumnWidth(),
+                },
+                children: const [
+                  TableRow(children: [
+                    Padding(
+                      padding: EdgeInsets.symmetric(vertical: 4),
+                      child: Text("Name of the biller:"),
+                    ),
+                    Padding(
+                      padding: EdgeInsets.symmetric(vertical: 4),
+                      child: Text("Credit Card"),
+                    ),
+                  ]),
+                  TableRow(children: [
+                    Padding(
+                      padding: EdgeInsets.symmetric(vertical: 4),
+                      child: Text("Mobile number:"),
+                    ),
+                    Padding(
+                      padding: EdgeInsets.symmetric(vertical: 4),
+                      child: Text("9849800697"),
+                    ),
+                  ]),
+                  TableRow(children: [
+                    Padding(
+                      padding: EdgeInsets.symmetric(vertical: 4),
+                      child: Text("Bill Number:"),
+                    ),
+                    Padding(
+                      padding: EdgeInsets.symmetric(vertical: 4),
+                      child: Text("BILL123456"),
+                    ),
+                  ]),
+                  TableRow(children: [
+                    Padding(
+                      padding: EdgeInsets.symmetric(vertical: 4),
+                      child: Text("Bill Date:"),
+                    ),
+                    Padding(
+                      padding: EdgeInsets.symmetric(vertical: 4),
+                      child: Text("02-08-2025"),
+                    ),
+                  ]),
+                  TableRow(children: [
+                    Padding(
+                      padding: EdgeInsets.symmetric(vertical: 4),
+                      child: Text("Bill Due Date:"),
+                    ),
+                    Padding(
+                      padding: EdgeInsets.symmetric(vertical: 4),
+                      child: Text("09-08-2025"),
+                    ),
+                  ]),
+                  TableRow(children: [
+                    Padding(
+                      padding: EdgeInsets.symmetric(vertical: 4),
+                      child: Text("B-Connect Txn ID:"),
+                    ),
+                    Padding(
+                      padding: EdgeInsets.symmetric(vertical: 4),
+                      child: Text("TXN4202526"),
+                    ),
+                  ]),
+                  TableRow(children: [
+                    Padding(
+                      padding: EdgeInsets.symmetric(vertical: 4),
+                      child: Text("Customer Convenience Fee:"),
+                    ),
+                    Padding(
+                      padding: EdgeInsets.symmetric(vertical: 4),
+                      child: Text("7.00"),
+                    ),
+                  ]),
+                  TableRow(children: [
+                    Padding(
+                      padding: EdgeInsets.symmetric(vertical: 4),
+                      child: Text("Registered Mobile Number:"),
+                    ),
+                    Padding(
+                      padding: EdgeInsets.symmetric(vertical: 4),
+                      child: Text("9849800697"),
+                    ),
+                  ]),
+                  TableRow(children: [
+                    Padding(
+                      padding: EdgeInsets.symmetric(vertical: 4),
+                      child: Text("Bill Amount:"),
+                    ),
+                    Padding(
+                      padding: EdgeInsets.symmetric(vertical: 4),
+                      child: Text("450.00"),
+                    ),
+                  ]),
+                  TableRow(children: [
+                    Padding(
+                      padding: EdgeInsets.symmetric(vertical: 4),
+                      child: Text("Total Amount:"),
+                    ),
+                    Padding(
+                      padding: EdgeInsets.symmetric(vertical: 4),
+                      child: Text("450.00"),
+                    ),
+                  ]),
+                  TableRow(children: [
+                    Padding(
+                      padding: EdgeInsets.symmetric(vertical: 4),
+                      child: Text("Transaction Date and Time:"),
+                    ),
+                    Padding(
+                      padding: EdgeInsets.symmetric(vertical: 4),
+                      child: Text("02-08-2025 10:26:16"),
+                    ),
+                  ]),
+                  TableRow(children: [
+                    Padding(
+                      padding: EdgeInsets.symmetric(vertical: 4),
+                      child: Text(
+                        "Status:",
+                        style: TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                    ),
+                    Padding(
+                      padding: EdgeInsets.symmetric(vertical: 4),
+                      child: Text(
+                        "PAID",
+                        style: TextStyle(color: Colors.green, fontWeight: FontWeight.bold),
+                      ),
+                    ),
+                  ]),
+                ],
+              ),
+            ],
           ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('Close'),
-            ),
-          ],
-        );
-      },
-    );
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Close'),
+          ),
+        ],
+      );
+    },
+  );
   }
 
   InputDecoration _ddDecoration(String label) => InputDecoration(
@@ -189,7 +316,7 @@ class _BharatConnectBillerTabState extends State<BharatConnectBillerTab> {
       );
 
   DropdownStyleData get _dropdownStyle => DropdownStyleData(
-        maxHeight: 320,
+        maxHeight: 520,
         isOverButton: false, // ensure menu opens below, not covering the field
         offset: const Offset(0, 4), // tiny gap from the field
         decoration: BoxDecoration(
@@ -516,7 +643,7 @@ class _RaiseComplaintTabState extends State<RaiseComplaintTab> {
       );
 
   DropdownStyleData get _dropdownStyle => DropdownStyleData(
-        maxHeight: 320,
+        maxHeight: 520,
         isOverButton: false,
         offset: const Offset(0, 4),
         decoration: BoxDecoration(borderRadius: BorderRadius.circular(8)),

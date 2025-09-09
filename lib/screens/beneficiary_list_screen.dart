@@ -35,6 +35,7 @@ class _BeneficiaryListScreenState extends State<BeneficiaryListScreen> {
   List<dynamic> _filteredBeneficiaries = [];
   List<String> _bankList = [];
   bool _isLoading = true;
+  bool _isProcessingPayment = false; // ✅ Track payment state
 
   final String baseUrl = "${ApiHandler.baseUri}/PayOut";
   final TextEditingController _searchController = TextEditingController();
@@ -321,9 +322,13 @@ class _BeneficiaryListScreenState extends State<BeneficiaryListScreen> {
     }
   }
 
-  Future<void> _payToBeneficiary(String id, String amount) async {
+   Future<void> _payToBeneficiary(String id, String amount) async {
     try {
-      setState(() => _isLoading = true); 
+      setState(() {
+        _isLoading = true;
+        _isProcessingPayment = true; // ✅ block back
+      });
+
       final url = Uri.parse("$baseUrl/PayToBeneficiary");
       final response = await http.post(
         url,
@@ -331,59 +336,52 @@ class _BeneficiaryListScreenState extends State<BeneficiaryListScreen> {
         body: jsonEncode({
           "id": id,
           "amount": double.tryParse(amount) ?? 0.0,
-          "userPhone": widget.phone
+          "userPhone": widget.phone,
         }),
       );
 
       final data = jsonDecode(response.body);
-       print(data);
-if (data['success'] == true) {
-  
-  final objRoot = data['objRoot'];
+      print(data);
 
-final userName = objRoot['accoutHolderName'] ?? "N/A";
-final amount = objRoot['orderRefNo'].toString(); // Convert to String if it's a number
-  print(userName);
-  print(amount);
+      if (data['success'] == true) {
+        final objRoot = data['objRoot'];
+        final userName = objRoot['accoutHolderName'] ?? "N/A";
+        final amount = objRoot['orderRefNo'].toString();
 
-  Navigator.push(
-    context,
-    MaterialPageRoute(
-      builder: (context) => PaymentSuccessScreen(
-        phone: widget.phone,
-        amount: amount,
-        userName: userName,
-      ),
-    ),
-  );
-
-
-        // final orderRefNo = data["orderRefNo"] ?? "N/A";
-        // final now = DateTime.now();
-        // String formattedDate = "${now.day}/${now.month}/${now.year} ${now.hour}:${now.minute}";
-        // showResponseDialog(
-        //   "✅ Payment Details:\nTxn ID: $orderRefNo\nAmount: ₹$amount\nStatus: Success\nDate: $formattedDate",
-        //   success: true,
-        // );
-      } else {
-        //showResponseDialog("❌ Payment failed or status is false.", success: false);
         Navigator.push(
-        context,
-        MaterialPageRoute(builder: (context) => PaymentFailureScreen(phone: widget.phone)),
-      );
+          context,
+          MaterialPageRoute(
+            builder: (context) => PaymentSuccessScreen(
+              phone: widget.phone,
+              amount: amount,
+              userName: userName,
+            ),
+          ),
+        );
+      } else {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => PaymentFailureScreen(phone: widget.phone),
+          ),
+        );
       }
     } catch (e) {
-      //showResponseDialog("❌ Payment failed or status is false.", success: false);
       Navigator.push(
         context,
-        MaterialPageRoute(builder: (context) => PaymentFailureScreen(phone: widget.phone)),
+        MaterialPageRoute(
+          builder: (context) => PaymentFailureScreen(phone: widget.phone),
+        ),
       );
-    }
-    finally {
-      setState(() => _isLoading = false);
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+          _isProcessingPayment = false; // ✅ allow back again
+        });
+      }
     }
   }
-
   void showResponseDialog(String message, {bool success = false}) async {
   if (success) {
     final player = AudioPlayer();
@@ -415,7 +413,17 @@ final amount = objRoot['orderRefNo'].toString(); // Convert to String if it's a 
 
   @override
   Widget build(BuildContext context) {
-    return InactivityWrapper(
+    return WillPopScope(
+      onWillPop: () async {
+        if (_isProcessingPayment) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text("Payment is processing, please wait…")),
+          );
+          return false; // 🚫 block back
+        }
+        return true; // ✅ allow normal back
+      },
+    child: InactivityWrapper(
      child:Scaffold(
       backgroundColor: Colors.white, // White background
       appBar: AppBar(
@@ -652,6 +660,7 @@ if (avlbal < minBalAvl) {
               ],
             ),
      ),
+    ),
     );
     
   }
