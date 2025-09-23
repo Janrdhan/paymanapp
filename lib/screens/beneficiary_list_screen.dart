@@ -355,6 +355,7 @@ class _BeneficiaryListScreenState extends State<BeneficiaryListScreen> {
               phone: widget.phone,
               amount: amount,
               userName: userName,
+              customerType: 'Retailer'
             ),
           ),
         );

@@ -6,12 +6,15 @@ class PaymentSuccessScreen extends StatefulWidget {
   final String phone;
   final String amount;
   final String userName;
+   final String customerType;
+
 
   const PaymentSuccessScreen({
     Key? key,
     required this.phone,
     required this.amount,
     required this.userName,
+    required this.customerType
   }) : super(key: key);
 
   @override
@@ -23,9 +26,14 @@ class _PaymentSuccessScreenState extends State<PaymentSuccessScreen> {
   @override
   void initState() {
     super.initState();
+    if(widget.customerType == 'new'){
+       // Play success sound
+   _playSuccessSoundNONMob();
+    }else{
+ _playSuccessSound();
+    }
 
-  // Play success sound
-    _playSuccessSound();
+ 
     // Auto-redirect to dashboard after 5 seconds
     Future.delayed(const Duration(seconds: 5), () {
       _goToDashboard();
@@ -35,6 +43,14 @@ class _PaymentSuccessScreenState extends State<PaymentSuccessScreen> {
   Future<void> _playSuccessSound() async {
     try {
       await _audioPlayer.play(AssetSource('sounds/success-340660.mp3'));
+    } catch (e) {
+      print("Error playing success sound: $e");
+    }
+  }
+
+   Future<void> _playSuccessSoundNONMob() async {
+    try {
+      await _audioPlayer.play(AssetSource('sounds/BharatConnect MOGO 270824.mp3'));
     } catch (e) {
       print("Error playing success sound: $e");
     }

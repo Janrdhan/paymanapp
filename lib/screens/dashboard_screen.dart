@@ -27,6 +27,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   Timer? _inactivityTimer;
   bool _payIn = false;
   bool _ccBill = false;
+  String _customerType = "N/A";
 
   final List<String> imagePaths = [
     'assets/images/1.png',
@@ -72,6 +73,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         setState(() {
           _payIn = userDetails['payIn'];
           _ccBill = userDetails['ccBill'];
+          _customerType = userDetails['customerType'];
         });
       }
     } catch (e) {
@@ -302,7 +304,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   if (labels[index] == 'Pay In') {
                     Navigator.push(context, MaterialPageRoute(builder: (_) => PayInScreen(phone: widget.phone)));
                   } else if (labels[index] == 'CC Bill') {
-                    Navigator.push(context, MaterialPageRoute(builder: (_) => CreditCardBillersScreen(phone: widget.phone)));
+                    Navigator.push(context, MaterialPageRoute(builder: (_) => CreditCardBillersScreen(phone: widget.phone, customerType: _customerType)));
                   }else if (labels[index] == 'Bill Payments') {
     Navigator.push(context, MaterialPageRoute(builder: (_) => const BillPaymentScreen()));
   }  else {

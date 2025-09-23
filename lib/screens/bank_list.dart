@@ -59,7 +59,8 @@ class Biller {
 
 class CreditCardBillersScreen extends StatefulWidget {
    final String phone;
-  const CreditCardBillersScreen({super.key,required this.phone});
+   final String customerType;
+  const CreditCardBillersScreen({super.key,required this.phone, required this.customerType});
 
   @override
   _CreditCardBillersScreenState createState() => _CreditCardBillersScreenState();
@@ -263,6 +264,7 @@ class _CreditCardBillersScreenState extends State<CreditCardBillersScreen> {
                 phone: widget.phone,
                 userWalletAmount: _userWalletAmount,
                 instantPaysAmount: _InstantPayAmount,
+                customerType: widget.customerType
               ),
             ),
           );
@@ -292,6 +294,7 @@ class _CreditCardBillersScreenState extends State<CreditCardBillersScreen> {
             phone: widget.phone,
             userWalletAmount: _userWalletAmount,
             instantPaysAmount: _InstantPayAmount,
+            customerType: widget.customerType
           ),
         ),
       );

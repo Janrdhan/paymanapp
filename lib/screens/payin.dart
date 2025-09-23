@@ -104,6 +104,7 @@ class _PayInScreenState extends State<PayInScreen> {
                 phone: widget.phone,
                 amount: amount,
                 userName: "PAYMAN",
+                customerType: 'Retailer'
               ),
             ),
           );
