@@ -112,7 +112,7 @@ class _PayOutHistoryScreenState extends State<PayOutHistoryScreen> {
                           ],
                         ),
                         trailing: Text(
-                          item['result'] == null ? 'Failed': item['result'],
+                          item['result'] ?? 'Failed',
                           style: TextStyle(
                             color: item['status'] == true ? Colors.green : Colors.red,
                             fontWeight: FontWeight.bold,

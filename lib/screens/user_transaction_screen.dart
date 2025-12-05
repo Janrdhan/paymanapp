@@ -87,14 +87,14 @@ class _UserTransactionScreenState extends State<UserTransactionScreen> {
                   if (_payIns.isEmpty)
                     const Text("No PayIn history available")
                   else
-                    ..._payIns.map((txn) => buildTransactionTile(txn, Colors.green)).toList(),
+                    ..._payIns.map((txn) => buildTransactionTile(txn, Colors.green)),
                   const SizedBox(height: 20),
                   const Text("PayOut History", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
                   const Divider(),
                   if (_payOuts.isEmpty)
                     const Text("No PayOut history available")
                   else
-                    ..._payOuts.map((txn) => buildTransactionTile(txn, Colors.red)).toList(),
+                    ..._payOuts.map((txn) => buildTransactionTile(txn, Colors.red)),
                 ],
               ),
             ),

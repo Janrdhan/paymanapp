@@ -142,7 +142,7 @@ class _BeneficiaryListScreenState extends State<BeneficiaryListScreen> {
                   validator: (value) => value!.isEmpty ? 'Required' : null,
                 ),
                 DropdownButtonFormField<String>(
-                  value: selectedTxn,
+                  initialValue: selectedTxn,
                   items: ['IMPS']
                       .map((txn) => DropdownMenuItem(value: txn, child: Text(txn)))
                       .toList(),
@@ -151,7 +151,7 @@ class _BeneficiaryListScreenState extends State<BeneficiaryListScreen> {
                   validator: (value) => value == null ? 'Required' : null,
                 ),
                 DropdownButtonFormField<String>(
-                  value: selectedBank,
+                  initialValue: selectedBank,
                   items: _bankList
                       .map((bank) => DropdownMenuItem(value: bank, child: Text(bank)))
                       .toList(),

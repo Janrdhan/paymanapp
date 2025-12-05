@@ -283,7 +283,7 @@ class _PayInScreenState extends State<PayInScreen> {
                 const Text('Gateway Type',
                     style: TextStyle(fontWeight: FontWeight.bold)),
                 DropdownButtonFormField<String>(
-                  value: selectedGateway,
+                  initialValue: selectedGateway,
                   hint: const Text('Select Gateway'),
                   isExpanded: true,
                   decoration:

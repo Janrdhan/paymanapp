@@ -10,12 +10,12 @@ class PaymentSuccessScreen extends StatefulWidget {
 
 
   const PaymentSuccessScreen({
-    Key? key,
+    super.key,
     required this.phone,
     required this.amount,
     required this.userName,
     required this.customerType
-  }) : super(key: key);
+  });
 
   @override
   State<PaymentSuccessScreen> createState() => _PaymentSuccessScreenState();

@@ -110,7 +110,7 @@ class _SignupScreenState extends State<SignupScreen> {
               const SizedBox(height: 10),
               DropdownButtonFormField<String>(
                 decoration: const InputDecoration(labelText: "Gender"),
-                value: _gender,
+                initialValue: _gender,
                 items: const [
                   DropdownMenuItem(value: "Male", child: Text("Male")),
                   DropdownMenuItem(value: "Female", child: Text("Female")),

@@ -168,7 +168,7 @@ class _NewUserDetailsScreenState extends State<NewUserDetailsScreen> {
 
   Widget _buildDropdown(String label, List<String> items, String? selectedValue, ValueChanged<String?> onChanged) {
     return DropdownButtonFormField<String>(
-      value: selectedValue,
+      initialValue: selectedValue,
       decoration: InputDecoration(
         labelText: label,
         border: const OutlineInputBorder(),

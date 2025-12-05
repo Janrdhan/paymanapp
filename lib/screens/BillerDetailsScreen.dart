@@ -8,7 +8,6 @@ import 'package:razorpay_flutter/razorpay_flutter.dart';
 import 'package:paymanapp/screens/payment_success_screen_mob.dart';
 import 'package:paymanapp/screens/payment_failure_screen.dart';
 import 'package:paymanapp/screens/inactivity_wrapper.dart';
-import 'package:paymanapp/screens/dashboard_screen.dart';
 import 'package:paymanapp/widgets/api_handler.dart';
 
 class BillerDetailsScreen extends StatefulWidget {

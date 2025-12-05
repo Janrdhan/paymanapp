@@ -22,7 +22,7 @@ class _AadharVerificationScreenState extends State<AadharVerificationScreen> {
   bool _isLoading = false;
   bool _isOtpSent = false;
   bool _isOtpVerified = false;
-  String _customerType = "N/A";
+  final String _customerType = "N/A";
 
   XFile? _aadharFrontImage;
   XFile? _aadharBackImage;
