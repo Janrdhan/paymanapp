@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:paymanapp/screens/bank_list.dart';
 import 'package:paymanapp/screens/bill_payment_screen.dart';
+import 'package:paymanapp/screens/electricity/select_provider_screen.dart';
+import 'package:paymanapp/screens/fastag/select_fastag_provider_screen.dart';
 import 'package:paymanapp/screens/payin.dart';
 import 'package:paymanapp/screens/tokenvalidator.dart';
 import 'package:paymanapp/screens/user_profile_screen.dart';
@@ -305,6 +307,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     Navigator.push(context, MaterialPageRoute(builder: (_) => PayInScreen(phone: widget.phone)));
                   } else if (labels[index] == 'CC Bill') {
                     Navigator.push(context, MaterialPageRoute(builder: (_) => CreditCardBillersScreen(phone: widget.phone, customerType: _customerType)));
+                  } else if (labels[index] == 'Electricity bill') {
+                    Navigator.push(context, MaterialPageRoute(builder: (_) => SelectProviderScreen(userPhone: widget.phone)));
+                    } else if (labels[index] == 'FASTag recharge') {
+                    Navigator.push(context, MaterialPageRoute(builder: (_) => SelectFastagProviderScreen(userPhone: widget.phone)));
                   }else if (labels[index] == 'Bill Payments') {
     Navigator.push(context, MaterialPageRoute(builder: (_) => const BillPaymentScreen()));
   }  else {
