@@ -7,9 +7,14 @@ plugins {
     id("dev.flutter.flutter-gradle-plugin")
 }
 
+/*
+ * Load keystore properties safely
+ */
+val keystoreProperties = Properties()
 val keystorePropertiesFile = rootProject.file("key.properties")
-val keystoreProperties = Properties().apply {
-    load(FileInputStream(keystorePropertiesFile))
+
+if (keystorePropertiesFile.exists()) {
+    keystoreProperties.load(FileInputStream(keystorePropertiesFile))
 }
 
 android {
@@ -34,17 +39,21 @@ android {
         versionName = flutter.versionName
     }
 
+    /*
+     * Release signing configuration
+     */
     signingConfigs {
         create("release") {
-            keyAlias = keystoreProperties["keyAlias"]!!.toString()
-            keyPassword = keystoreProperties["keyPassword"]!!.toString()
-            storePassword = keystoreProperties["storePassword"]!!.toString()
+            if (keystorePropertiesFile.exists()) {
+                keyAlias = keystoreProperties["keyAlias"] as String
+                keyPassword = keystoreProperties["keyPassword"] as String
+                storePassword = keystoreProperties["storePassword"] as String
 
-            val storeFilePath = keystoreProperties["storeFile"]?.toString()
-            require(!storeFilePath.isNullOrBlank()) {
-                "storeFile path is missing or empty in key.properties"
+                // Resolves to android/payman-keystore.jks
+                storeFile = rootProject.file(
+                    keystoreProperties["storeFile"] as String
+                )
             }
-            storeFile = file(storeFilePath)
         }
     }
 
@@ -53,7 +62,14 @@ android {
             signingConfig = signingConfigs.getByName("release")
             isMinifyEnabled = false
             isShrinkResources = false
-            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
+            proguardFiles(
+                getDefaultProguardFile("proguard-android-optimize.txt"),
+                "proguard-rules.pro"
+            )
+        }
+
+        getByName("debug") {
+            signingConfig = signingConfigs.getByName("release")
         }
     }
 }
