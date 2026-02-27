@@ -3,13 +3,12 @@ import 'package:easebuzz_flutter/easebuzz_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
-import 'package:paymanapp/screens/dashboard_screen.dart';
+//import 'package:paymanapp/screens/dashboard_screen.dart';
 import 'package:paymanapp/screens/inactivity_wrapper.dart';
 import 'package:paymanapp/screens/payment_failure_screen.dart';
 import 'package:paymanapp/screens/payment_service.dart';
 import 'package:paymanapp/screens/payment_success_screen.dart';
 import 'package:paymanapp/screens/travel_pg_webview.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 class PayInScreen extends StatefulWidget {
   final String phone;
@@ -22,7 +21,6 @@ class PayInScreen extends StatefulWidget {
 class _PayInScreenState extends State<PayInScreen> {
   final _formKey = GlobalKey<FormState>();
 
-  // Controllers for all fields
   final TextEditingController holderNameController = TextEditingController();
   final TextEditingController holderNumberController = TextEditingController();
   final TextEditingController holderEmailController = TextEditingController();
@@ -33,10 +31,44 @@ class _PayInScreenState extends State<PayInScreen> {
   final EasebuzzFlutter _easebuzzFlutterPlugin = EasebuzzFlutter();
 
   String? selectedGateway;
-  String _paymentResponse = 'No payment response yet';
-  bool _isProcessing = false;
+  List<String> gatewayList = [];
 
- Future<void> initiateTravelPG(
+  bool _isProcessing = false;
+  bool _isLoadingGateways = false;
+
+  @override
+  void initState() {
+    super.initState();
+    fetchGateways();
+  }
+
+  // ✅ Fetch Gateways (Corrected)
+  Future<void> fetchGateways() async {
+    setState(() => _isLoadingGateways = true);
+
+    try {
+      final response = await http.get(
+        Uri.parse("https://paymanfintech.in/Auth/GetGateways"),
+      );
+
+      if (response.statusCode == 200) {
+        final List<dynamic> data = jsonDecode(response.body);
+
+        gatewayList = data
+            .where((g) => g["app"] == true)
+            .map<String>((g) => g["gatewayName"].toString())
+            .toList();
+      } else {
+        print("Gateway API Failed: ${response.statusCode}");
+      }
+    } catch (e) {
+      print("Gateway Fetch Error: $e");
+    }
+
+    setState(() => _isLoadingGateways = false);
+  }
+
+  Future<void> initiateEduPG(
   String amount,
   String holderName,
   String holderNumber,
@@ -44,21 +76,17 @@ class _PayInScreenState extends State<PayInScreen> {
   String cardNumber,
 ) async {
   try {
-    final now = DateTime.now();
-    final orderId = "PAYMAN${now.millisecondsSinceEpoch}";
-    final actionType = 1;
+    final parsedAmount = double.tryParse(amount) ?? 0;
 
     final response = await http.post(
-      Uri.parse("https://fastag.paymanfintech.in/FasTag/Initiate"),
+      Uri.parse("https://edu.paymanfintech.in/JioPay/CreateOrder"),
       body: {
-        "orderId": orderId,
-        "amount": amount,
-        "actionType": actionType.toString(),
-        "email": holderEmail,
-        "phone": widget.phone,
-        "custmobile": holderNumber,
-        "custname": holderName,
-        "custcard": cardNumber,
+        "amount": parsedAmount.toString(),
+        "userPhone": widget.phone,
+        "cName": holderName,
+        "cMobile": holderNumber,
+        "cCard": cardNumber,
+        "cemail": holderEmail,
         "divice": "mobile"
       },
     );
@@ -66,30 +94,78 @@ class _PayInScreenState extends State<PayInScreen> {
     final data = jsonDecode(response.body);
 
     if (data["success"] == true) {
-      final url = data["url"];
+      final redirectUrl = data["redirectUrl"];
 
       Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (_) => TravelPGWebView(
-            paymentUrl: url,
+          builder: (_) => TravelPGWebView(   // ✅ Reusing same WebView
+            paymentUrl: redirectUrl,
             phone: widget.phone,
             amount: amount,
           ),
         ),
       );
     } else {
-      showResponseDialog(data["message"] ?? "Travel PG failed");
+      showResponseDialog(data["message"] ?? "EDU PG failed");
     }
   } catch (e) {
-    showResponseDialog("Travel PG Error: $e");
+    showResponseDialog("EDU PG Error: $e");
   }
 }
+
+  Future<void> initiateTravelPG(
+    String amount,
+    String holderName,
+    String holderNumber,
+    String holderEmail,
+    String cardNumber,
+  ) async {
+    try {
+      final now = DateTime.now();
+      final orderId = "PAYMAN${now.millisecondsSinceEpoch}";
+
+      final response = await http.post(
+        Uri.parse("https://fastag.paymanfintech.in/FasTag/Initiate"),
+        body: {
+          "orderId": orderId,
+          "amount": amount,
+          "actionType": "1",
+          "email": holderEmail,
+          "phone": widget.phone,
+          "custmobile": holderNumber,
+          "custname": holderName,
+          "custcard": cardNumber,
+          "divice": "mobile"
+        },
+      );
+
+      final data = jsonDecode(response.body);
+
+      if (data["success"] == true) {
+        final url = data["url"];
+
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => TravelPGWebView(
+              paymentUrl: url,
+              phone: widget.phone,
+              amount: amount,
+            ),
+          ),
+        );
+      } else {
+        showResponseDialog(data["message"] ?? "Travel PG failed");
+      }
+    } catch (e) {
+      showResponseDialog("Travel PG Error: $e");
+    }
+  }
 
   Future<void> initiatePayment() async {
     if (_isProcessing) return;
     if (!_formKey.currentState!.validate()) return;
-    _formKey.currentState!.save();
 
     if (selectedGateway == null) {
       showResponseDialog("Please select a payment gateway.");
@@ -98,7 +174,6 @@ class _PayInScreenState extends State<PayInScreen> {
 
     setState(() => _isProcessing = true);
 
-    // Collect all field values
     final holderName = holderNameController.text.trim();
     final holderNumber = holderNumberController.text.trim();
     final holderEmail = holderEmailController.text.trim();
@@ -106,24 +181,28 @@ class _PayInScreenState extends State<PayInScreen> {
     final amount = amountController.text.trim();
     final gateway = selectedGateway!;
 
-  // 🔹 If Travel PG selected
-  if (selectedGateway == "Travel PG") {
-    await initiateTravelPG(
-      amount,
-      holderName,
-      holderNumber,
-      holderEmail,
-      cardNumber,
-    );
+    if (gateway == "Travel PG") {
+      await initiateTravelPG(
+          amount, holderName, holderNumber, holderEmail, cardNumber);
 
-    setState(() => _isProcessing = false);
-    return;
-  }
+      setState(() => _isProcessing = false);
+      return;
+    }
 
-    // Get Access Key from API
-    final accessKey = await _paymentService.getAccessKey(widget.phone,holderNumber, amount, holderName, holderEmail);
+    // 🔹 EDU PG Flow
+if (gateway == "EDU PG") {
+  await initiateEduPG(
+      amount, holderName, holderNumber, holderEmail, cardNumber);
+
+  setState(() => _isProcessing = false);
+  return;
+}
+
+    final accessKey = await _paymentService.getAccessKey(
+        widget.phone, holderNumber, amount, holderName, holderEmail);
+
     if (accessKey == null) {
-      showResponseDialog("❌ Error: Unable to get access key.");
+      showResponseDialog("Unable to get access key.");
       setState(() => _isProcessing = false);
       return;
     }
@@ -137,17 +216,17 @@ class _PayInScreenState extends State<PayInScreen> {
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(
-            builder: (context) => PaymentFailureScreen(phone: widget.phone),
+            builder: (context) =>
+                PaymentFailureScreen(phone: widget.phone),
           ),
         );
         return;
       }
 
-      setState(() => _paymentResponse = paymentResponse.toString());
-
-      // Extract txnId from response string
-      String cleaned = _paymentResponse.replaceAll(RegExp(r'^{|}$'), '');
-      final txnIdMatch = RegExp(r'txnid:\s*([\w-]+)').firstMatch(cleaned);
+      String cleaned =
+          paymentResponse.toString().replaceAll(RegExp(r'^{|}$'), '');
+      final txnIdMatch =
+          RegExp(r'txnid:\s*([\w-]+)').firstMatch(cleaned);
       final txnId = txnIdMatch?.group(1) ?? '';
 
       if (txnId.isNotEmpty) {
@@ -171,7 +250,7 @@ class _PayInScreenState extends State<PayInScreen> {
                 phone: widget.phone,
                 amount: amount,
                 userName: "PAYMAN",
-                customerType: 'Retailer'
+                customerType: 'Retailer',
               ),
             ),
           );
@@ -183,40 +262,26 @@ class _PayInScreenState extends State<PayInScreen> {
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(
-          builder: (context) => PaymentFailureScreen(phone: widget.phone),
+          builder: (context) =>
+              PaymentFailureScreen(phone: widget.phone),
         ),
       );
-    } on PlatformException catch (e) {
-      setState(() => _paymentResponse =
-          jsonEncode({"message": "Payment failed", "error": e.message}));
-      showResponseDialog(_paymentResponse);
     } catch (e) {
-      showResponseDialog("Unexpected Error: $e");
+      showResponseDialog("Payment Error: $e");
     } finally {
       setState(() => _isProcessing = false);
     }
   }
 
-  void showResponseDialog(String message, {bool success = false}) {
+  void showResponseDialog(String message) {
     showDialog(
       context: context,
       builder: (_) => AlertDialog(
         title: const Text("Payment Response"),
-        content: SingleChildScrollView(child: Text(message)),
+        content: Text(message),
         actions: [
           TextButton(
-            onPressed: () {
-              Navigator.pop(context);
-              if (success) {
-                Navigator.pushReplacement(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) =>
-                        DashboardScreen(phone: widget.phone),
-                  ),
-                );
-              }
-            },
+            onPressed: () => Navigator.pop(context),
             child: const Text("OK"),
           ),
         ],
@@ -229,37 +294,30 @@ class _PayInScreenState extends State<PayInScreen> {
     return InactivityWrapper(
       child: Scaffold(
         appBar: AppBar(title: const Text('Pay In')),
-        backgroundColor: Colors.white,
         body: Padding(
-          padding: const EdgeInsets.all(16.0),
+          padding: const EdgeInsets.all(16),
           child: Form(
             key: _formKey,
             child: ListView(
               children: [
-                // Card Holder Name
+
                 TextFormField(
                   controller: holderNameController,
                   decoration: const InputDecoration(
-                    labelText: 'Card Holder Name',
-                    border: OutlineInputBorder(),
-                  ),
-                  keyboardType: TextInputType.name,
-                  validator: (value) {
-                    if (value == null || value.trim().isEmpty) {
-                      return 'Card holder name is required';
-                    }
-                    return null;
-                  },
+                      labelText: 'Card Holder Name',
+                      border: OutlineInputBorder()),
+                  validator: (value) =>
+                      value == null || value.isEmpty
+                          ? 'Card holder name is required'
+                          : null,
                 ),
                 const SizedBox(height: 16),
 
-                // Card Holder Number
                 TextFormField(
                   controller: holderNumberController,
                   decoration: const InputDecoration(
-                    labelText: 'Card Holder Mobile Number',
-                    border: OutlineInputBorder(),
-                  ),
+                      labelText: 'Card Holder Mobile Number',
+                      border: OutlineInputBorder()),
                   keyboardType: TextInputType.number,
                   inputFormatters: [
                     FilteringTextInputFormatter.digitsOnly,
@@ -277,27 +335,23 @@ class _PayInScreenState extends State<PayInScreen> {
                 ),
                 const SizedBox(height: 16),
 
-                // Card Holder Email
                 TextFormField(
                   controller: holderEmailController,
                   decoration: const InputDecoration(
-                    labelText: 'Card Holder Email',
-                    border: OutlineInputBorder(),
-                  ),
-                  keyboardType: TextInputType.emailAddress,
+                      labelText: 'Card Holder Email',
+                      border: OutlineInputBorder()),
                   validator: (value) {
                     if (value == null || value.isEmpty) {
                       return 'Email is required';
                     }
                     if (!RegExp(r'^[^@]+@[^@]+\.[^@]+').hasMatch(value)) {
-                      return 'Enter a valid email';
+                      return 'Enter valid email';
                     }
                     return null;
                   },
                 ),
                 const SizedBox(height: 16),
 
-                // Card Number
                 TextFormField(
                   controller: cardController,
                   decoration: const InputDecoration(
@@ -321,65 +375,68 @@ class _PayInScreenState extends State<PayInScreen> {
                 ),
                 const SizedBox(height: 16),
 
-                // Amount
                 TextFormField(
                   controller: amountController,
                   decoration: const InputDecoration(
-                    labelText: 'Amount',
-                    border: OutlineInputBorder(),
-                  ),
+                      labelText: 'Amount',
+                      border: OutlineInputBorder()),
                   keyboardType: TextInputType.number,
-                  inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                  inputFormatters:
+                      [FilteringTextInputFormatter.digitsOnly],
                   validator: (value) {
                     if (value == null || value.isEmpty) {
-                      return 'Amount is required';
+                      return 'Amount required';
                     }
-                    final parsedValue = int.tryParse(value);
-                    if (parsedValue == null || parsedValue <= 0) {
-                         return 'Enter a valid amount';
+                    final parsed = int.tryParse(value);
+                    if (parsed == null || parsed <= 0) {
+                      return 'Enter valid amount';
                     }
-                    if (parsedValue > 99999) {
-                        return 'Amount cannot be more than 99999';
-                      }
+                    if (parsed > 99999) {
+                      return 'Amount cannot exceed 99999';
+                    }
                     return null;
                   },
                 ),
                 const SizedBox(height: 16),
 
-                // Gateway Dropdown
-                const Text('Gateway Type',
-                    style: TextStyle(fontWeight: FontWeight.bold)),
-                DropdownButtonFormField<String>(
-                  initialValue: selectedGateway,
-                  hint: const Text('Select Gateway'),
-                  isExpanded: true,
-                  decoration:
-                      const InputDecoration(border: OutlineInputBorder()),
-                  items: ['Easebuzz','Travel PG'].map((gateway) {
-                    return DropdownMenuItem<String>(
-                      value: gateway,
-                      child: Text(gateway),
-                    );
-                  }).toList(),
-                  validator: (value) => value == null || value.isEmpty
-                      ? 'Please select a gateway'
-                      : null,
-                  onChanged: (value) =>
-                      setState(() => selectedGateway = value),
-                ),
+                _isLoadingGateways
+                    ? const Center(child: CircularProgressIndicator())
+                    : DropdownButtonFormField<String>(
+                        value: selectedGateway,
+                        hint: const Text('Select Gateway'),
+                        isExpanded: true,
+                        decoration: const InputDecoration(
+                            border: OutlineInputBorder()),
+                        items: gatewayList
+                            .map((gateway) =>
+                                DropdownMenuItem<String>(
+                                  value: gateway,
+                                  child: Text(gateway),
+                                ))
+                            .toList(),
+                        validator: (value) => value == null
+                            ? 'Please select gateway'
+                            : null,
+                        onChanged: (value) {
+                          setState(() {
+                            selectedGateway = value;
+                          });
+                        },
+                      ),
                 const SizedBox(height: 24),
 
-                // Submit Button
                 Center(
                   child: ElevatedButton(
-                    onPressed: _isProcessing ? null : initiatePayment,
+                    onPressed:
+                        _isProcessing ? null : initiatePayment,
                     child: _isProcessing
                         ? const SizedBox(
                             height: 20,
                             width: 20,
-                            child: CircularProgressIndicator(
-                              color: Colors.white,
+                            child:
+                                CircularProgressIndicator(
                               strokeWidth: 2,
+                              color: Colors.white,
                             ),
                           )
                         : const Text('Proceed to Pay'),
