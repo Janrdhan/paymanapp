@@ -30,26 +30,41 @@ class _BillDetailsScreenState extends State<BillDetailsScreen> {
   bool isProcessing = false;
   bool autoPay = false;
 
-  String getAmount() {
-    // try various keys
-    return widget.billData['billAmount']?.toString() ??
-        widget.billData['amount']?.toString() ??
-        widget.billData['amountDue']?.toString() ??
-        '0';
-  }
+  Map<String, dynamic> get billerResponse =>
+    widget.billData['billerResponse'] ?? {};
 
-  String getCustomerName() {
-    return widget.billData['customerName'] ?? widget.billData['name'] ?? '';
-  }
+ String getAmount() {
+  return billerResponse['billAmount']?.toString() ?? '0';
+}
 
-  String getDueDate() {
-    return widget.billData['dueDate'] ?? widget.billData['billDate'] ?? '';
-  }
+String getAmountForDisplay() {
+  final raw = billerResponse['billAmount'];
 
-  String getReferenceId() {
-    return widget.billData['referenceId'] ?? widget.billData['billRefId'] ?? widget.billData['billNumber'] ?? '';
-  }
+  if (raw == null) return '0';
 
+  final paise = double.tryParse(raw.toString()) ?? 0;
+  final rupees = paise / 100;
+
+  return rupees.toStringAsFixed(2);
+}
+
+String getCustomerName() {
+  return billerResponse['customerName'] ?? '';
+}
+
+String getDueDate() {
+  return billerResponse['dueDate'] ?? '';
+}
+
+String getBillDate() {
+  return billerResponse['billDate'] ?? '';
+}
+
+String getReferenceId() {
+  return widget.billData['enquiryReferenceId'] ??
+      widget.billData['referenceId'] ??
+      '';
+}
   Future<void> processPayment() async {
     setState(() => isProcessing = true);
 
@@ -98,7 +113,7 @@ class _BillDetailsScreenState extends State<BillDetailsScreen> {
   }
 
   Widget amountCard() {
-    final amt = getAmount();
+    final amt = getAmountForDisplay();
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(color: Colors.grey.shade100, borderRadius: BorderRadius.circular(10)),
@@ -107,7 +122,7 @@ class _BillDetailsScreenState extends State<BillDetailsScreen> {
           Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
             Text(getCustomerName(), style: const TextStyle(fontWeight: FontWeight.w600)),
             const SizedBox(height: 6),
-            Text('Bill Date : ${widget.billData['billDate'] ?? ''}', style: const TextStyle(color: Colors.grey)),
+            Text('Bill Date : ${getBillDate()}', style: const TextStyle(color: Colors.grey)),
           ]),
         ]),
         const SizedBox(height: 12),

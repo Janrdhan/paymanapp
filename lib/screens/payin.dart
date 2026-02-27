@@ -2,11 +2,14 @@ import 'dart:convert';
 import 'package:easebuzz_flutter/easebuzz_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:http/http.dart' as http;
 import 'package:paymanapp/screens/dashboard_screen.dart';
 import 'package:paymanapp/screens/inactivity_wrapper.dart';
 import 'package:paymanapp/screens/payment_failure_screen.dart';
 import 'package:paymanapp/screens/payment_service.dart';
 import 'package:paymanapp/screens/payment_success_screen.dart';
+import 'package:paymanapp/screens/travel_pg_webview.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class PayInScreen extends StatefulWidget {
   final String phone;
@@ -33,6 +36,56 @@ class _PayInScreenState extends State<PayInScreen> {
   String _paymentResponse = 'No payment response yet';
   bool _isProcessing = false;
 
+ Future<void> initiateTravelPG(
+  String amount,
+  String holderName,
+  String holderNumber,
+  String holderEmail,
+  String cardNumber,
+) async {
+  try {
+    final now = DateTime.now();
+    final orderId = "PAYMAN${now.millisecondsSinceEpoch}";
+    final actionType = 1;
+
+    final response = await http.post(
+      Uri.parse("https://fastag.paymanfintech.in/FasTag/Initiate"),
+      body: {
+        "orderId": orderId,
+        "amount": amount,
+        "actionType": actionType.toString(),
+        "email": holderEmail,
+        "phone": widget.phone,
+        "custmobile": holderNumber,
+        "custname": holderName,
+        "custcard": cardNumber,
+        "divice": "mobile"
+      },
+    );
+
+    final data = jsonDecode(response.body);
+
+    if (data["success"] == true) {
+      final url = data["url"];
+
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => TravelPGWebView(
+            paymentUrl: url,
+            phone: widget.phone,
+            amount: amount,
+          ),
+        ),
+      );
+    } else {
+      showResponseDialog(data["message"] ?? "Travel PG failed");
+    }
+  } catch (e) {
+    showResponseDialog("Travel PG Error: $e");
+  }
+}
+
   Future<void> initiatePayment() async {
     if (_isProcessing) return;
     if (!_formKey.currentState!.validate()) return;
@@ -52,6 +105,20 @@ class _PayInScreenState extends State<PayInScreen> {
     final cardNumber = cardController.text.trim();
     final amount = amountController.text.trim();
     final gateway = selectedGateway!;
+
+  // 🔹 If Travel PG selected
+  if (selectedGateway == "Travel PG") {
+    await initiateTravelPG(
+      amount,
+      holderName,
+      holderNumber,
+      holderEmail,
+      cardNumber,
+    );
+
+    setState(() => _isProcessing = false);
+    return;
+  }
 
     // Get Access Key from API
     final accessKey = await _paymentService.getAccessKey(widget.phone,holderNumber, amount, holderName, holderEmail);
@@ -288,7 +355,7 @@ class _PayInScreenState extends State<PayInScreen> {
                   isExpanded: true,
                   decoration:
                       const InputDecoration(border: OutlineInputBorder()),
-                  items: ['Easebuzz'].map((gateway) {
+                  items: ['Easebuzz','Travel PG'].map((gateway) {
                     return DropdownMenuItem<String>(
                       value: gateway,
                       child: Text(gateway),
