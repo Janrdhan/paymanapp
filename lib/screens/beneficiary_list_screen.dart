@@ -38,6 +38,7 @@ class _BeneficiaryListScreenState extends State<BeneficiaryListScreen> {
   bool _isProcessingPayment = false; // ✅ Track payment state
 
   final String baseUrl = "${ApiHandler.baseUri}/PayOut";
+  final String baseUrl1 = "${ApiHandler.baseUri}/CsbPayout";
   final TextEditingController _searchController = TextEditingController();
 
   @override
@@ -329,7 +330,7 @@ class _BeneficiaryListScreenState extends State<BeneficiaryListScreen> {
         _isProcessingPayment = true; // ✅ block back
       });
 
-      final url = Uri.parse("$baseUrl/PayToBeneficiary");
+      final url = Uri.parse("$baseUrl1/PayToBeneficiary");
       final response = await http.post(
         url,
         headers: {"Content-Type": "application/json"},
