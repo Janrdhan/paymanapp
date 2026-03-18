@@ -45,10 +45,11 @@ class _PayInScreenState extends State<PayInScreen> {
   // ✅ Fetch Gateways (Corrected)
   Future<void> fetchGateways() async {
     setState(() => _isLoadingGateways = true);
+    final String phone = widget.phone;
 
     try {
       final response = await http.get(
-        Uri.parse("https://paymanfintech.in/Auth/GetGateways"),
+         Uri.parse("https://paymanfintech.in/Auth/GetGateways?mobile=$phone")
       );
 
       if (response.statusCode == 200) {
@@ -163,6 +164,72 @@ class _PayInScreenState extends State<PayInScreen> {
     }
   }
 
+
+Future<void> initiateCashfreeEduPG(
+  String amount,
+  String holderName,
+  String holderNumber,
+  String holderEmail,
+  String cardNumber,
+) async {
+  try {
+    final now = DateTime.now();
+    final orderId = "PAYMAN${now.millisecondsSinceEpoch}";
+    final custId = "Cust${now.millisecondsSinceEpoch}";
+    final userPhone = widget.phone;
+
+    final orderData = {
+      "order_id": orderId,
+      "order_amount": double.parse(amount),
+      "order_currency": "INR",
+      "order_note": "Order Id:$orderId",
+      "order_meta": {
+        "return_url":
+            "https://edu.paymanfintech.in/Edu/Return?order_id=$orderId&loginmobile=$userPhone&email=$holderEmail&cardnum=$cardNumber&holderphone=$holderNumber&holdername=$holderName&device=mobile",
+            "notify_url": "https://edu.paymanfintech.in/Edu/Notify"
+      },
+      "customer_details": {
+        "customer_id": custId,
+        "customer_name": holderName,
+        "customer_email": holderEmail,
+        "customer_phone": holderNumber
+      }
+    };
+
+    final response = await http.post(
+      Uri.parse("https://edu.paymanfintech.in/Edu/CreateOrder"),
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: jsonEncode(orderData),
+    );
+
+    final data = jsonDecode(response.body);
+
+    if (data["paymentSessionId"] != null) {
+      final sessionId = data["paymentSessionId"];
+
+      final checkoutUrl =
+          "https://edu.paymanfintech.in/Edu/StartCheckout?sessionId=$sessionId";
+
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => TravelPGWebView(
+            paymentUrl: checkoutUrl,
+            phone: userPhone,
+            amount: amount,
+          ),
+        ),
+      );
+    } else {
+      showResponseDialog("Failed to get session ID");
+    }
+  } catch (e) {
+    showResponseDialog("Cashfree Edu PG Error: $e");
+  }
+}
+
   Future<void> initiatePayment() async {
     if (_isProcessing) return;
     if (!_formKey.currentState!.validate()) return;
@@ -183,6 +250,14 @@ class _PayInScreenState extends State<PayInScreen> {
 
     if (gateway == "Travel PG") {
       await initiateTravelPG(
+          amount, holderName, holderNumber, holderEmail, cardNumber);
+
+      setState(() => _isProcessing = false);
+      return;
+    }
+
+     if (gateway == "CahfreeEdu PG") {
+      await initiateCashfreeEduPG(
           amount, holderName, holderNumber, holderEmail, cardNumber);
 
       setState(() => _isProcessing = false);
