@@ -30,8 +30,8 @@ class _PayInScreenState extends State<PayInScreen> {
   final PaymentService _paymentService = PaymentService();
   final EasebuzzFlutter _easebuzzFlutterPlugin = EasebuzzFlutter();
 
-  String? selectedGateway;
-  List<String> gatewayList = [];
+  List<dynamic> gatewayList = [];
+String? selectedGateway; // this will hold storeName
 
   bool _isProcessing = false;
   bool _isLoadingGateways = false;
@@ -42,33 +42,56 @@ class _PayInScreenState extends State<PayInScreen> {
     fetchGateways();
   }
 
-  // ✅ Fetch Gateways (Corrected)
-  Future<void> fetchGateways() async {
-    setState(() => _isLoadingGateways = true);
-    final String phone = widget.phone;
+ Future<void> fetchGateways() async {
+  setState(() => _isLoadingGateways = true);
+  final String phone = widget.phone;
 
-    try {
-      final response = await http.get(
-         Uri.parse("https://paymanfintech.in/Auth/GetGateways?mobile=$phone")
-      );
+  try {
+    final response = await http.get(
+      Uri.parse("https://paymanfintech.in/Auth/GetGateways?mobile=$phone"),
+    );
 
-      if (response.statusCode == 200) {
-        final List<dynamic> data = jsonDecode(response.body);
+    if (response.statusCode == 200) {
+      final List<dynamic> data = jsonDecode(response.body);
 
-        gatewayList = data
-            .where((g) => g["app"] == true)
-            .map<String>((g) => g["gatewayName"].toString())
-            .toList();
-      } else {
-        print("Gateway API Failed: ${response.statusCode}");
+      // 🔍 Debug (optional)
+      print("API Response:");
+      print(data);
+
+      // ✅ Step 1: Filter valid gateways
+      final filtered = data.where((g) =>
+          g["app"] == true &&                // only app-enabled
+          g["isActive"] == true &&           // only active
+          g["storeName"] != null &&
+          g["gatewayName"] != null
+      ).toList();
+
+      // ✅ Step 2: Remove duplicates using storeName
+      final Map<String, dynamic> uniqueMap = {};
+      for (var g in filtered) {
+        uniqueMap[g["storeName"].toString()] = g;
       }
-    } catch (e) {
-      print("Gateway Fetch Error: $e");
-    }
 
-    setState(() => _isLoadingGateways = false);
+      // ✅ Step 3: Assign cleaned list
+      gatewayList = uniqueMap.values.toList();
+
+      // ✅ Step 4: Fix dropdown crash (VERY IMPORTANT)
+      if (!gatewayList.any((g) => g["storeName"] == selectedGateway)) {
+        selectedGateway = null;
+      }
+
+      // 🔍 Debug
+      print("Gateways Loaded:");
+      print(gatewayList.map((g) => g["storeName"]).toList());
+    } else {
+      print("Gateway API Failed: ${response.statusCode}");
+    }
+  } catch (e) {
+    print("Gateway Fetch Error: $e");
   }
 
+  setState(() => _isLoadingGateways = false);
+}
   Future<void> initiateEduPG(
   String amount,
   String holderName,
@@ -248,7 +271,9 @@ Future<void> initiateCashfreeEduPG(
     final amount = amountController.text.trim();
     final gateway = selectedGateway!;
 
-    if (gateway == "Travel PG") {
+    if (gateway == "Vegaah") {
+      print("Initiating Vegaah Payment...");
+      print(gateway);
       await initiateTravelPG(
           amount, holderName, holderNumber, holderEmail, cardNumber);
 
@@ -256,7 +281,7 @@ Future<void> initiateCashfreeEduPG(
       return;
     }
 
-     if (gateway == "CahfreeEdu PG") {
+     if (gateway == "CashfreeEdu") {
       await initiateCashfreeEduPG(
           amount, holderName, holderNumber, holderEmail, cardNumber);
 
@@ -265,7 +290,7 @@ Future<void> initiateCashfreeEduPG(
     }
 
     // 🔹 EDU PG Flow
-if (gateway == "EDU PG") {
+if (gateway == "JioPay") {
   await initiateEduPG(
       amount, holderName, holderNumber, holderEmail, cardNumber);
 
@@ -476,28 +501,29 @@ if (gateway == "EDU PG") {
 
                 _isLoadingGateways
                     ? const Center(child: CircularProgressIndicator())
-                    : DropdownButtonFormField<String>(
-                        value: selectedGateway,
-                        hint: const Text('Select Gateway'),
-                        isExpanded: true,
-                        decoration: const InputDecoration(
-                            border: OutlineInputBorder()),
-                        items: gatewayList
-                            .map((gateway) =>
-                                DropdownMenuItem<String>(
-                                  value: gateway,
-                                  child: Text(gateway),
-                                ))
-                            .toList(),
-                        validator: (value) => value == null
-                            ? 'Please select gateway'
-                            : null,
-                        onChanged: (value) {
-                          setState(() {
-                            selectedGateway = value;
-                          });
-                        },
-                      ),
+                    : _isLoadingGateways
+    ? const Center(child: CircularProgressIndicator())
+    : DropdownButtonFormField<String>(
+        value: selectedGateway,
+        hint: const Text('Select Gateway'),
+        isExpanded: true,
+        decoration: const InputDecoration(
+          border: OutlineInputBorder(),
+        ),
+        items: gatewayList.map<DropdownMenuItem<String>>((g) {
+          return DropdownMenuItem<String>(
+            value: g["storeName"].toString(), // ✅ VALUE (unique)
+            child: Text(g["gatewayName"].toString()), // ✅ TEXT
+          );
+        }).toList(),
+        onChanged: (value) {
+          setState(() {
+            selectedGateway = value;
+          });
+        },
+        validator: (value) =>
+            value == null ? 'Please select gateway' : null,
+      ),
                 const SizedBox(height: 24),
 
                 Center(
