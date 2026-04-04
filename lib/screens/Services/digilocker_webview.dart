@@ -40,7 +40,7 @@ class _DigiLockerWebViewState extends State<DigiLockerWebView> {
 
     Navigator.of(context).pushAndRemoveUntil(
       MaterialPageRoute(
-        builder: (context) => HomeContainer(),
+        builder: (context) => HomeContainer(userPhone: phone), // Pass phone if needed
       ),
       (Route<dynamic> route) => false, // removes all previous routes
     );

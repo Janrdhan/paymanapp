@@ -12,12 +12,14 @@ class SplashScreen extends StatefulWidget {
 }
 
 class _SplashScreenState extends State<SplashScreen> {
+
   @override
   void initState() {
     super.initState();
     _checkSession();
   }
 
+  // 🔍 CHECK LOGIN SESSION
   Future<void> _checkSession() async {
     await Future.delayed(const Duration(seconds: 1));
 
@@ -28,29 +30,29 @@ class _SplashScreenState extends State<SplashScreen> {
     if (!mounted) return;
 
     // ❌ Never logged in
-    if (phone == null || refreshToken == null) {
+    if (phone == null || phone.isEmpty || refreshToken == null) {
       _goLogin();
       return;
     }
 
     // ✅ Token valid
     if (token != null && !AuthService.isTokenExpired(token)) {
-      _goHome();
+      _goHome(phone);
       return;
     }
 
-    // 🔁 Silent refresh
-    final newToken =
-        await AuthService.refreshAccessToken(refreshToken);
+    // 🔁 Silent token refresh
+    final newToken = await AuthService.refreshAccessToken(refreshToken);
 
     if (newToken != null) {
       await SessionManager.saveToken(newToken);
     }
 
-    // ⚠ Even if refresh fails → Home (PhonePe behavior)
-    _goHome();
+    // ⚠ Even if refresh fails → go home (like PhonePe)
+    _goHome(phone);
   }
 
+  // 🔐 GO TO LOGIN
   void _goLogin() {
     Navigator.pushReplacement(
       context,
@@ -58,11 +60,12 @@ class _SplashScreenState extends State<SplashScreen> {
     );
   }
 
-  void _goHome() {
+  // 🏠 GO TO HOME (FIXED)
+  void _goHome(String phone) {
     Navigator.pushReplacement(
       context,
       MaterialPageRoute(
-        builder: (_) => HomeContainer(),
+        builder: (_) => HomeContainer(userPhone: phone),
       ),
     );
   }
@@ -70,7 +73,9 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   Widget build(BuildContext context) {
     return const Scaffold(
-      body: Center(child: CircularProgressIndicator()),
+      body: Center(
+        child: CircularProgressIndicator(),
+      ),
     );
   }
 }

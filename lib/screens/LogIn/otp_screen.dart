@@ -20,7 +20,7 @@ class _OtpScreenState extends State<OtpScreen> with CodeAutoFill {
   @override
   void initState() {
     super.initState();
-    listenForCode(); // Android only
+    listenForCode();
   }
 
   @override
@@ -46,10 +46,11 @@ class _OtpScreenState extends State<OtpScreen> with CodeAutoFill {
         kycStatus: res['kycCompleted'] ?? false,
       );
 
+      // ✅ FIXED NAVIGATION
       Navigator.pushAndRemoveUntil(
         context,
         MaterialPageRoute(
-          builder: (_) => HomeContainer(),
+          builder: (_) => HomeContainer(userPhone: widget.phone),
         ),
         (_) => false,
       );
@@ -84,7 +85,7 @@ class _OtpScreenState extends State<OtpScreen> with CodeAutoFill {
             children: [
               const SizedBox(height: 30),
 
-              /// 🔹 BRAND (MATCH LOGIN)
+              /// 🔹 BRAND
               Center(
                 child: Text(
                   "PAYMAN",
@@ -99,28 +100,21 @@ class _OtpScreenState extends State<OtpScreen> with CodeAutoFill {
 
               const SizedBox(height: 50),
 
-              /// 🔹 TITLE
               const Text(
                 "Enter OTP",
-                style: TextStyle(
-                  fontSize: 22,
-                  fontWeight: FontWeight.w600,
-                ),
+                style: TextStyle(fontSize: 22, fontWeight: FontWeight.w600),
               ),
 
               const SizedBox(height: 8),
 
               Text(
                 "We’ve sent a 6-digit OTP to +91 $maskedPhone",
-                style: const TextStyle(
-                  color: Colors.grey,
-                  fontSize: 14,
-                ),
+                style: const TextStyle(color: Colors.grey, fontSize: 14),
               ),
 
               const SizedBox(height: 36),
 
-              /// 🔹 OTP INPUT
+              /// OTP FIELD
               Center(
                 child: PinFieldAutoFill(
                   codeLength: 6,
@@ -144,20 +138,16 @@ class _OtpScreenState extends State<OtpScreen> with CodeAutoFill {
 
               const SizedBox(height: 18),
 
-              /// 🔹 AUTO-DETECT INFO
               const Center(
                 child: Text(
                   "OTP will be auto-detected on supported devices",
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: Colors.grey,
-                  ),
+                  style: TextStyle(fontSize: 12, color: Colors.grey),
                 ),
               ),
 
               const Spacer(),
 
-              /// 🔹 VERIFY BUTTON
+              /// VERIFY BUTTON
               SizedBox(
                 width: double.infinity,
                 height: 52,
@@ -183,9 +173,7 @@ class _OtpScreenState extends State<OtpScreen> with CodeAutoFill {
                       : const Text(
                           "Verify OTP",
                           style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w600,
-                          ),
+                              fontSize: 16, fontWeight: FontWeight.w600),
                         ),
                 ),
               ),

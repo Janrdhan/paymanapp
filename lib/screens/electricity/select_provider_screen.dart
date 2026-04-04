@@ -1,4 +1,3 @@
-// select_provider_screen.dart
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
@@ -17,9 +16,11 @@ class SelectProviderScreen extends StatefulWidget {
 class _SelectProviderScreenState extends State<SelectProviderScreen> {
   List<dynamic> allBillers = [];
   List<dynamic> filtered = [];
-  List<dynamic> recents = []; // you could save/load recents from prefs
+  List<dynamic> recents = [];
+
   bool isLoading = false;
   final TextEditingController searchCtrl = TextEditingController();
+
   Map<String, dynamic>? selectedBillerDetails;
 
   @override
@@ -28,68 +29,72 @@ class _SelectProviderScreenState extends State<SelectProviderScreen> {
     fetchBillers();
   }
 
+  // 🔥 FETCH BILLERS API
   Future<void> fetchBillers() async {
     setState(() => isLoading = true);
+
     try {
       final uri = Uri.parse('${ApiHandler.baseUri}/BillPayments/BillersList')
-          .replace(queryParameters: {'billerName': 'Electricity', 'userPhone': widget.userPhone});
+          .replace(queryParameters: {
+        'billerName': 'Electricity',
+        'userPhone': widget.userPhone
+      });
+
       final res = await http.get(uri);
+
       if (res.statusCode == 200) {
         final jsonData = jsonDecode(res.body);
-        // API returns object with .billers
+
         allBillers = (jsonData['billers'] ?? []) as List<dynamic>;
         filtered = List.from(allBillers);
-        // Optionally set recents based on logic
       } else {
-        debugPrint('BillersList error: ${res.body}');
+        debugPrint("API Error: ${res.body}");
       }
     } catch (e) {
-      debugPrint('fetchBillers error: $e');
+      debugPrint("Fetch Error: $e");
     }
+
     setState(() => isLoading = false);
   }
 
+  // 🔍 SEARCH FUNCTION
   void onSearch(String q) {
-    final term = q.trim().toLowerCase();
+    final term = q.toLowerCase().trim();
+
     if (term.isEmpty) {
       setState(() => filtered = List.from(allBillers));
       return;
     }
+
     setState(() {
       filtered = allBillers.where((b) {
-        final name = (b['billerName'] ?? '').toString().toLowerCase();
-        final cate = (b['category'] ?? '').toString().toLowerCase();
+        final name = (b['billerName'] ?? '').toLowerCase();
+        final cate = (b['category'] ?? '').toLowerCase();
         return name.contains(term) || cate.contains(term);
       }).toList();
     });
   }
 
+  // 🚀 OPEN PROVIDER → FETCH DETAILS → NAVIGATE
   void openProvider(dynamic biller) async {
-    // push to service number screen, pass biller info & userPhone
-     try {
+    try {
       final uri =
           Uri.parse('${ApiHandler.baseUri}/BillPayments/CheckBillerCategory')
               .replace(queryParameters: {
-        'billerId': biller['billerId'],
+        'billerId': biller['billerId'].toString(),
         'userPhone': widget.userPhone,
       });
 
       final response = await http.get(uri);
 
       if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
-
-        setState(() {
-          selectedBillerDetails = data;
-        });
-
-        print("Biller details loaded: $data");
+        selectedBillerDetails = jsonDecode(response.body);
       }
     } catch (e) {
-      print("Error loading biller details: $e");
+      debugPrint("Details Error: $e");
     }
 
-
+    // 👉 Navigate to Bill Screen
     Navigator.push(
       context,
       MaterialPageRoute(
@@ -97,50 +102,61 @@ class _SelectProviderScreenState extends State<SelectProviderScreen> {
           phone: widget.userPhone,
           customerType: 'PREPAID',
           billerName: biller['billerName'] ?? '',
-          billerId: biller['billerId'] ?? biller['billerId'].toString(),
+          billerId: biller['billerId'].toString(),
           billerLogoUrl: biller['iconUrl'] ?? '',
         ),
       ),
     );
   }
 
+  // 🎯 BILLER TILE UI
   Widget providerTile(dynamic b) {
     return InkWell(
       onTap: () => openProvider(b),
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 12),
+        margin: const EdgeInsets.symmetric(vertical: 6),
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(10),
+          borderRadius: BorderRadius.circular(12),
         ),
-        margin: const EdgeInsets.symmetric(vertical: 6),
         child: Row(
           children: [
-            // placeholder circular icon
+            // 🔶 ICON
             Container(
               width: 44,
               height: 44,
               decoration: BoxDecoration(
-                color: Colors.grey.shade100,
+                color: Colors.orange.shade50,
                 borderRadius: BorderRadius.circular(22),
               ),
-              child: Center(child: Icon(Icons.flash_on, color: Colors.orange)),
+              child: const Icon(Icons.flash_on, color: Colors.orange),
             ),
+
             const SizedBox(width: 12),
+
+            // 🔶 TEXT
             Expanded(
               child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      b['billerName'] ?? '',
-                      style: const TextStyle(fontWeight: FontWeight.w600),
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    const SizedBox(height: 4),
-                    Text(b['billerId'] ?? '', style: const TextStyle(color: Colors.grey, fontSize: 12)),
-                  ]),
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    b['billerName'] ?? '',
+                    style: const TextStyle(
+                        fontWeight: FontWeight.w600, fontSize: 14),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    "ID: ${b['billerId']}",
+                    style:
+                        const TextStyle(color: Colors.grey, fontSize: 12),
+                  ),
+                ],
+              ),
             ),
-            const Icon(Icons.more_vert, size: 18),
+
+            const Icon(Icons.chevron_right),
           ],
         ),
       ),
@@ -148,18 +164,34 @@ class _SelectProviderScreenState extends State<SelectProviderScreen> {
   }
 
   @override
+  void dispose() {
+    searchCtrl.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: const Color(0xffF5F6FA),
+
+      // 🔷 APP BAR
       appBar: AppBar(
-        title: const Text('Select Provider'),
-        leading: BackButton(),
+        title: const Text("Select Electricity Provider"),
+        elevation: 0,
+        backgroundColor: Colors.white,
+        foregroundColor: Colors.black,
         actions: [
           Padding(
             padding: const EdgeInsets.only(right: 12),
-            child: Image.asset('assets/bharat_connect.png', height: 26), // optional
+            child: Image.asset(
+              'assets/bharat_connect.png',
+              height: 26,
+              errorBuilder: (_, __, ___) => const SizedBox(),
+            ),
           )
         ],
       ),
+
       body: SafeArea(
         child: isLoading
             ? const Center(child: CircularProgressIndicator())
@@ -167,58 +199,90 @@ class _SelectProviderScreenState extends State<SelectProviderScreen> {
                 padding: const EdgeInsets.all(12),
                 child: Column(
                   children: [
-                    // banner
+                    // 🎁 BANNER
                     Container(
                       height: 90,
                       decoration: BoxDecoration(
                         color: Colors.deepPurple.shade900,
-                        borderRadius: BorderRadius.circular(10),
+                        borderRadius: BorderRadius.circular(12),
                       ),
                       child: Row(
                         children: [
                           const SizedBox(width: 12),
-                          Expanded(child: Text('Get flat ₹30 cashback\nOn electricity bill payments', style: const TextStyle(color: Colors.white, fontSize: 16))),
-                          const SizedBox(width: 12),
+                          const Expanded(
+                            child: Text(
+                              "Get flat ₹30 cashback\non electricity bill payments",
+                              style: TextStyle(
+                                  color: Colors.white, fontSize: 15),
+                            ),
+                          ),
                           Padding(
                             padding: const EdgeInsets.only(right: 12),
-                            child: ElevatedButton(onPressed: () {}, style: ElevatedButton.styleFrom(backgroundColor: Colors.white), child: const Text('Pay now', style: TextStyle(color: Colors.black))),
+                            child: ElevatedButton(
+                              onPressed: () {},
+                              style: ElevatedButton.styleFrom(
+                                  backgroundColor: Colors.white),
+                              child: const Text("Pay now",
+                                  style: TextStyle(color: Colors.black)),
+                            ),
                           )
                         ],
                       ),
                     ),
+
                     const SizedBox(height: 12),
 
-                    // Search box
+                    // 🔍 SEARCH
                     TextField(
                       controller: searchCtrl,
                       onChanged: onSearch,
                       decoration: InputDecoration(
                         prefixIcon: const Icon(Icons.search),
-                        hintText: 'Search by biller',
+                        hintText: "Search by biller",
                         filled: true,
                         fillColor: Colors.white,
-                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(40), borderSide: BorderSide.none),
-                        contentPadding: const EdgeInsets.symmetric(vertical: 0, horizontal: 16),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(40),
+                          borderSide: BorderSide.none,
+                        ),
                       ),
                     ),
+
                     const SizedBox(height: 12),
 
-                    // Recents title + list (if any)
+                    // 🔹 RECENTS
                     if (recents.isNotEmpty) ...[
-                      Align(alignment: Alignment.centerLeft, child: const Padding(padding: EdgeInsets.symmetric(vertical: 6), child: Text('Recents', style: TextStyle(fontWeight: FontWeight.bold)))),
-                      // show first recent
+                      const Align(
+                        alignment: Alignment.centerLeft,
+                        child: Padding(
+                          padding: EdgeInsets.symmetric(vertical: 6),
+                          child: Text("Recents",
+                              style: TextStyle(fontWeight: FontWeight.bold)),
+                        ),
+                      ),
                       providerTile(recents.first),
                       const SizedBox(height: 8),
                     ],
 
-                    // Section title
-                    Align(alignment: Alignment.centerLeft, child: const Padding(padding: EdgeInsets.symmetric(vertical: 6), child: Text('All Billers', style: TextStyle(fontWeight: FontWeight.bold)))),
-                    Expanded(
-                      child: ListView.builder(
-                        itemCount: filtered.length,
-                        itemBuilder: (_, i) => providerTile(filtered[i]),
-                        shrinkWrap: true,
+                    // 🔹 ALL BILLERS
+                    const Align(
+                      alignment: Alignment.centerLeft,
+                      child: Padding(
+                        padding: EdgeInsets.symmetric(vertical: 6),
+                        child: Text("All Billers",
+                            style: TextStyle(fontWeight: FontWeight.bold)),
                       ),
+                    ),
+
+                    // 📜 LIST
+                    Expanded(
+                      child: filtered.isEmpty
+                          ? const Center(child: Text("No billers found"))
+                          : ListView.builder(
+                              itemCount: filtered.length,
+                              itemBuilder: (_, i) =>
+                                  providerTile(filtered[i]),
+                            ),
                     ),
                   ],
                 ),
