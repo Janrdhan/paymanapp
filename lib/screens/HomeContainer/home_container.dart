@@ -71,17 +71,18 @@ class HomeContainer extends StatelessWidget {
 
   Widget _grid(BuildContext context) {
     final items = [
-      {"name": "Mobile", "icon": Icons.phone_android},
+      {"name": "Mobile Postpaid", "icon": Icons.phone_android},
+      {"name": "Mobile Prepaid", "icon": Icons.phone_android},
       {"name": "Credit Card", "icon": Icons.credit_card},
       {"name": "Electricity", "icon": Icons.flash_on},
       {"name": "FASTag", "icon": Icons.local_shipping},
       {"name": "DTH", "icon": Icons.tv},
-      {"name": "Municipal", "icon": Icons.location_city},
+      {"name": "Municipal Services", "icon": Icons.location_city},
       {"name": "Insurance", "icon": Icons.security},
-      {"name": "Loan", "icon": Icons.account_balance},
+      {"name": "Loan Repayment", "icon": Icons.account_balance},
     ];
 
-    return GridView.builder(
+    return GridView.builder(      
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
       itemCount: items.length,

@@ -11,9 +11,39 @@ final Map<String, BBPSCategoryConfig> bbpsConfig = {
     fields: [
       {"key": "vehicleNumber", "label": "Vehicle Number"}
     ],
+  ), 
+
+  "Municipal Services": BBPSCategoryConfig(
+    category: "Municipal Services",
+    fields: [
+      {"key": "house", "label": "House Number"}
+    ],
   ),
 
-  "Credit Card": BBPSCategoryConfig(
+  "DTH": BBPSCategoryConfig(
+    category: "DTH",
+    fields: [
+      {"key": "number", "label": "Registered Mobile Number / Viewing Card Number"}
+    ],
+  ),
+
+  "Mobile Postpaid": BBPSCategoryConfig(
+    category: "Mobile Postpaid",
+    fields: [
+      {"key": "mobile", "label": "Mobile Number"}
+    ],
+  ),
+
+
+"Mobile Prepaid": BBPSCategoryConfig(
+    category: "Mobile Prepaid",
+    fields: [
+      {"key": "mobile", "label": "Mobile Number"}
+    ],
+  ),
+
+
+  "Credit Card": BBPSCategoryConfig( 
     category: "Credit Card",
     fields: [
       {"key": "last4", "label": "Last 4 Digits"},

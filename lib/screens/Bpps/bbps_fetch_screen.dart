@@ -42,14 +42,64 @@ class _BBPSFetchScreenState extends State<BBPSFetchScreen> {
   final TextEditingController amountCtrl = TextEditingController();
 
   @override
-  void initState() {
-    super.initState();
+void initState() {
+  super.initState();
+  loadBillerConfig();
+}
 
-    final config = bbpsConfig[widget.category];
-    for (var f in config!.fields) {
-      controllers[f["key"]!] = TextEditingController();
-    }
+Future<void> loadBillerConfig() async {
+  try {
+    setState(() {
+      isLoading = true;
+    });
+
+    final uri = Uri.parse(
+      '${ApiHandler.baseUri}/BillPayments/CheckBillerCategory',
+    ).replace(
+      queryParameters: {
+        "BillerName": widget.category,
+        "UserPhone": widget.userPhone,
+        "BillerId": widget.biller['billerId'].toString(),
+      },
+    );
+
+    final res = await http.get(
+      uri,
+      headers: {
+        "Content-Type": "application/json",
+      },
+    );
+
+      final data = jsonDecode(res.body);
+      bool isAvailable = data['isAvailable'] ?? false;
+      String categoryKey = data['categoryKey'] ?? '';
+
+      if (isAvailable) {
+        final config = bbpsConfig[categoryKey];
+
+        if (config != null) {
+          controllers.clear();
+
+          for (var field in config.fields) {
+            controllers[field["key"]!] = TextEditingController();
+          }
+
+          setState(() {});
+        } else {
+          showToast("No config found for $categoryKey");
+        }
+      } else {
+        showToast("Biller not available");
+      }
+  } catch (e) {
+    showToast("Error occurred: ${e.toString()}");
+  } finally {
+    setState(() {
+      isLoading = false;
+    });
   }
+}
+
 
   void showToast(String msg) {
     Fluttertoast.showToast(
