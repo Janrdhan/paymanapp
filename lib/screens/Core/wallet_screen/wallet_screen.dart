@@ -28,11 +28,6 @@ class _WalletScreenState extends State<WalletScreen> with SingleTickerProviderSt
   List<Map<String, dynamic>> _payoutTransactions = [];
   List<Map<String, dynamic>> _passbookEntries = [];
   
-  // These are for tab‑specific loading (used later, but not for initial load)
-  bool _isLoadingPayIn = false;
-  bool _isLoadingPayout = false;
-  bool _isLoadingPassbook = false;
-  
   String _errorMessage = '';
   String _searchQuery = '';
   
