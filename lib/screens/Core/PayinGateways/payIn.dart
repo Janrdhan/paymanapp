@@ -1,3 +1,4 @@
+// ignore: file_names
 import 'dart:async';
 import 'dart:convert';
 import 'package:easebuzz_flutter/easebuzz_flutter.dart';
@@ -9,7 +10,6 @@ import 'package:paymanapp/screens/Core/PayinGateways/payment_failure.dart';   //
 import 'package:paymanapp/screens/Core/PayinGateways/payment_success.dart';   // renamed
 import 'package:paymanapp/screens/inactivity_wrapper.dart';
 import 'package:paymanapp/screens/payment_service.dart';
-import 'package:paymanapp/screens/travel_pg_webview.dart';
 import 'package:paymanapp/widgets/api_handler.dart';
 
 class PayInScreen extends StatefulWidget {
@@ -17,6 +17,7 @@ class PayInScreen extends StatefulWidget {
   const PayInScreen({required this.phone, super.key});
 
   @override
+  // ignore: library_private_types_in_public_api
   _PayInScreenState createState() => _PayInScreenState();
 }
 

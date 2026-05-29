@@ -48,8 +48,6 @@ class _PGWebViewState extends State<PGWebView> {
                   uri.queryParameters["IsSuccess"]?.toLowerCase();
               final amount =
                   uri.queryParameters["Amount"] ?? widget.amount;
-              final txnId =
-                  uri.queryParameters["TransactionId"] ?? "FAILED";
 
               // 🔥 SHOW ALERT BEFORE NAVIGATION
               // await showDialog(
