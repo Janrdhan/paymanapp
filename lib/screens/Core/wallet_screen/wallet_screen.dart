@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:paymanapp/screens/Core/PayinGateways/payIn.dart';
+import 'package:paymanapp/screens/Core/wallet_screen/pay_out.dart';
 import 'package:paymanapp/widgets/api_handler.dart';
 import 'dart:io';
 import 'package:path_provider/path_provider.dart';
@@ -52,7 +53,6 @@ class _WalletScreenState extends State<WalletScreen> with SingleTickerProviderSt
   Future<void> _fetchWalletData() async {
     setState(() => _isLoadingOverall = true);
     try {
-      // Run all four requests in parallel
       await Future.wait([
         _fetchBalance(),
         _fetchPayInTransactions(),
@@ -306,16 +306,27 @@ class _WalletScreenState extends State<WalletScreen> with SingleTickerProviderSt
     await Share.shareXFiles([XFile(file.path)], text: 'Exported $type');
   }
 
-  // ------------------- ADD MONEY (UPDATED) -------------------
+  // ------------------- ADD MONEY -------------------
   Future<void> _addMoney() async {
-    // Navigate to the PayInScreen and wait for it to finish
     await Navigator.push(
       context,
       MaterialPageRoute(
         builder: (ctx) => PayInScreen(phone: widget.userPhone),
       ),
     );
-    // After returning (either payment done or back press), refresh wallet data
+    if (mounted) {
+      await _fetchWalletData();
+    }
+  }
+
+  // ------------------- SEND MONEY (PAYOUT) -------------------
+  Future<void> _sendMoney() async {
+    await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (ctx) => PayOutScreen(phone: widget.userPhone),
+      ),
+    );
     if (mounted) {
       await _fetchWalletData();
     }
@@ -324,7 +335,6 @@ class _WalletScreenState extends State<WalletScreen> with SingleTickerProviderSt
   // ------------------- UI -------------------
   @override
   Widget build(BuildContext context) {
-    // Show full‑screen loader while fetching initial data
     if (_isLoadingOverall) {
       return Scaffold(
         backgroundColor: const Color(0xFFF8F9FC),
@@ -355,8 +365,17 @@ class _WalletScreenState extends State<WalletScreen> with SingleTickerProviderSt
         title: const Text("Payman Wallet"),
         elevation: 0,
         actions: [
-          IconButton(icon: const Icon(Icons.filter_alt_outlined), onPressed: _selectDateRange, tooltip: 'Date range'),
-          IconButton(icon: const Icon(Icons.refresh), onPressed: _fetchWalletData, tooltip: 'Refresh'),
+          // Payout button
+          IconButton(
+            icon: const Icon(Icons.send, color: Colors.blueAccent),
+            onPressed: _sendMoney,
+            tooltip: 'Send Money',
+          ),
+          IconButton(
+            icon: const Icon(Icons.refresh, color: Colors.blueAccent),
+            onPressed: _fetchWalletData,
+            tooltip: 'Refresh',
+          ),
         ],
       ),
       body: Column(
@@ -436,8 +455,6 @@ class _WalletScreenState extends State<WalletScreen> with SingleTickerProviderSt
         children: [
           const Text("Available Balance", style: TextStyle(color: Colors.white70, fontSize: 14)),
           const SizedBox(height: 8),
-          // Once overall loading is false, balance is already loaded → no loader here
-          // We'll show balance directly (it's already set)
           Text("₹ ${_balance.toStringAsFixed(2)}", style: const TextStyle(fontSize: 32, fontWeight: FontWeight.bold, color: Colors.white)),
           const SizedBox(height: 8),
           const Text("UPI • Wallet • Bank Transfer", style: TextStyle(color: Colors.white70, fontSize: 12)),
@@ -446,8 +463,6 @@ class _WalletScreenState extends State<WalletScreen> with SingleTickerProviderSt
     );
   }
 
-  // These tab builders no longer have their own loading indicators because
-  // initial data is already present.
   Widget _buildPayInTab() {
     final data = _filterList(_payInTransactions, 'description');
     if (data.isEmpty) return const Center(child: Text("No PayIn transactions"));
