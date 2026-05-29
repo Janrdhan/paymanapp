@@ -4,7 +4,7 @@ import 'package:paymanapp/screens/Profile/user_profile_model.dart';
 
 class KycStatusCard extends StatelessWidget {
   final UserProfile profile;
-  const KycStatusCard({required this.profile});
+  const KycStatusCard({super.key, required this.profile});
 
   @override
   Widget build(BuildContext context) {

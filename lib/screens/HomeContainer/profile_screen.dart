@@ -198,7 +198,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           _input("Email", _emailCtrl),
           _input("Phone", _phoneCtrl, readOnly: true),
           DropdownButtonFormField<String>(
-            value: _gender,
+            initialValue: _gender,
             decoration: _dec("Gender"),
             items: const [
               DropdownMenuItem(value: "Male", child: Text("Male")),

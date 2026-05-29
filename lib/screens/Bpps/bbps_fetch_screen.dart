@@ -86,10 +86,10 @@ Future<void> loadBillerConfig() async {
 
           setState(() {});
         } else {
-          showToast("No config found for $categoryKey");
+          //showToast("No config found for $categoryKey");
         }
       } else {
-        showToast("Biller not available");
+       // showToast("Biller not available");
       }
   } catch (e) {
     showToast("Error occurred: ${e.toString()}");

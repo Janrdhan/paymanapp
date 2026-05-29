@@ -44,7 +44,6 @@ class SessionManager {
     return prefs.getBool(_userKycKey);
   }
 
-
   static Future<void> clearSession() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.clear();

@@ -132,7 +132,6 @@
 
 
 
-
 import 'package:flutter/material.dart';
 import 'screens/LogIn/splash_screen.dart';
 
@@ -146,11 +145,33 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const MaterialApp(
+    return MaterialApp(
       debugShowCheckedModeBanner: false,
-      title: 'PayMan',
-      home: SplashScreen(),
+      title: 'PAYMAN',
+      theme: ThemeData(
+        fontFamily: 'Poppins',
+        scaffoldBackgroundColor: const Color(0xFFF8F9FC),
+        primarySwatch: Colors.blue,
+        colorScheme: const ColorScheme.light(
+          primary: Color(0xFF2563EB),
+          secondary: Color(0xFF1E3A8A),
+        ),
+        appBarTheme: const AppBarTheme(
+          backgroundColor: Colors.white,
+          elevation: 0,
+          centerTitle: false,
+          titleTextStyle: TextStyle(
+            color: Colors.black87,
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+          ),
+          iconTheme: IconThemeData(color: Colors.black87),
+        ),
+        bottomNavigationBarTheme: const BottomNavigationBarThemeData(
+          selectedItemColor: Color(0xFF2563EB),
+        ),
+      ),
+      home: const SplashScreen(),
     );
   }
 }
-

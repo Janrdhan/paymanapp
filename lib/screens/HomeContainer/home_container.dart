@@ -1,148 +1,98 @@
 import 'package:flutter/material.dart';
-import 'package:paymanapp/screens/Bpps/bbps_billers_screen.dart';
-import 'package:paymanapp/screens/Core/fintech_icon_tile.dart';
+import 'package:paymanapp/screens/Core/LoginAppFiles/home_screen_app.dart';
+import 'package:paymanapp/screens/Core/LoginAppFiles/profile_screen.dart';
+import 'package:paymanapp/screens/Core/LoginAppFiles/reports_screen.dart';
+import 'package:paymanapp/screens/Core/LoginAppFiles/utilities_screen.dart';
+import 'package:paymanapp/screens/Services/auth_service.dart';
+import 'package:paymanapp/screens/Services/session_manager.dart';
 
-class HomeContainer extends StatelessWidget {
+class HomeContainer extends StatefulWidget {
   final String userPhone;
-
   const HomeContainer({super.key, required this.userPhone});
 
   @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFFF5F6FA),
+  State<HomeContainer> createState() => _HomeContainerState();
+}
 
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0,
-        title: const Text(
-          "PAYMAN",
-          style: TextStyle(
-            color: Colors.black,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        actions: const [
-          Padding(
-            padding: EdgeInsets.only(right: 16),
-            child: Icon(Icons.notifications_none, color: Colors.black),
-          )
-        ],
-      ),
+class _HomeContainerState extends State<HomeContainer> {
+  int _selectedIndex = 0;
+  double _balance = 0.0;
+  bool _loadingBalance = true;
 
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          children: [
-
-            /// 🔹 BALANCE CARD
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                  colors: [Color(0xFF6A1B9A), Color(0xFF8E24AA)],
-                ),
-                borderRadius: BorderRadius.circular(20),
-              ),
-              child: Row(
-                children: const [
-                  Icon(Icons.account_balance_wallet, color: Colors.white),
-                  SizedBox(width: 10),
-                  Text(
-                    "Wallet Balance ₹0",
-                    style: TextStyle(color: Colors.white, fontSize: 16),
-                  ),
-                ],
-              ),
-            ),
-
-            const SizedBox(height: 20),
-
-            /// 🔹 RECHARGE & BILLS CARD
-            _sectionCard(
-              title: "Recharge & Bills",
-              child: _grid(context),
-            ),
-          ],
-        ),
-      ),
-    );
+  @override
+  void initState() {
+    super.initState();
+    _fetchBalance();
   }
 
-  Widget _grid(BuildContext context) {
-    final items = [
-      {"name": "Mobile Postpaid", "icon": Icons.phone_android},
-      {"name": "Mobile Prepaid", "icon": Icons.phone_android},
-      {"name": "Credit Card", "icon": Icons.credit_card},
-      {"name": "Electricity", "icon": Icons.flash_on},
-      {"name": "FASTag", "icon": Icons.local_shipping},
-      {"name": "DTH", "icon": Icons.tv},
-      {"name": "Municipal Services", "icon": Icons.location_city},
-      {"name": "Insurance", "icon": Icons.security},
-      {"name": "Loan Repayment", "icon": Icons.account_balance},
+  Future<void> _fetchBalance() async {
+    setState(() => _loadingBalance = true);
+
+    String? token = await SessionManager.getToken();
+    final refreshToken = await SessionManager.getRefreshToken();
+
+    if (token != null && AuthService.isTokenExpired(token)) {
+      if (refreshToken != null) {
+        final newToken = await AuthService.refreshAccessToken(refreshToken);
+        if (newToken != null) {
+          token = newToken;
+          await SessionManager.saveToken(newToken);
+        }
+      }
+    }
+
+    double? balance;
+    if (token != null) {
+      balance = await AuthService.fetchBalance(widget.userPhone, token);
+    }
+
+    if (mounted) {
+      setState(() {
+        _balance = balance ?? 0.0;
+        _loadingBalance = false;
+      });
+    }
+  }
+
+  void _refreshBalance() => _fetchBalance();
+
+  @override
+  Widget build(BuildContext context) {
+    final List<Widget> screens = [
+      HomeScreenApp(
+  userPhone: widget.userPhone,
+  userName: 'Jurra',          // from SessionManager
+  balance: _balance,
+  isLoadingBalance: _loadingBalance,
+  onRefresh: _refreshBalance,
+  isB2B: false,               // from session
+),
+      const UtilitiesScreen(),
+      const ReportsScreen(),
+      ProfileScreen(
+        userPhone: widget.userPhone,
+        onLogout: () {
+          Navigator.pushReplacementNamed(context, '/');
+        },
+      ),
     ];
 
-    return GridView.builder(      
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      itemCount: items.length,
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 4,
-        mainAxisSpacing: 16,
-        crossAxisSpacing: 12,
-        childAspectRatio: 0.8,
-      ),
-      itemBuilder: (_, i) {
-        final item = items[i];
-
-        return FintechIconTile(
-          icon: item["icon"] as IconData,
-          label: item["name"] as String,
-          onTap: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (_) => BBPSBillersScreen(
-                  category: item["name"] as String,
-                  userPhone: userPhone,
-                ),
-              ),
-            );
-          },
-        );
-      },
-    );
-  }
-
-  Widget _sectionCard({required String title, required Widget child}) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(22),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(.05),
-            blurRadius: 10,
-          ),
-        ],
-      ),
-      child: Column(
-        children: [
-          Row(
-            children: [
-              Text(
-                title,
-                style: const TextStyle(
-                    fontSize: 16, fontWeight: FontWeight.w600),
-              ),
-              const Spacer(),
-              const Text("View All",
-                  style: TextStyle(color: Colors.blue)),
-            ],
-          ),
-          const SizedBox(height: 16),
-          child,
+    return Scaffold(
+      body: screens[_selectedIndex],
+      bottomNavigationBar: BottomNavigationBar(
+        type: BottomNavigationBarType.fixed,
+        currentIndex: _selectedIndex,
+        selectedItemColor: const Color(0xFF2563EB), // blue
+        unselectedItemColor: Colors.grey,
+        onTap: (index) {
+          setState(() => _selectedIndex = index);
+          if (index == 0) _refreshBalance();
+        },
+        items: const [
+          BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
+          BottomNavigationBarItem(icon: Icon(Icons.medical_services), label: 'Services'),
+          BottomNavigationBarItem(icon: Icon(Icons.receipt), label: 'Reports'),
+          BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
         ],
       ),
     );

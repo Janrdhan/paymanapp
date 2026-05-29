@@ -32,7 +32,7 @@ class FintechIconTile extends StatelessWidget {
                     BoxShadow(color: Colors.black12, blurRadius: 6),
                   ],
                 ),
-                child: Icon(icon, color: const Color(0xFF6A1B9A)),
+                child: Icon(icon, color: const Color(0xFF2563EB), size: 28),
               ),
               if (badge != null)
                 Positioned(top: -2, right: -2, child: badge!),

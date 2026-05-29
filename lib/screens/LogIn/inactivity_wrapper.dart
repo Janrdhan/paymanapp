@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:paymanapp/screens/LogIn/login_screen.dart';
-import '../services/session_manager.dart';
 
 class InactivityWrapper extends StatefulWidget {
   final Widget child;

@@ -504,7 +504,7 @@ if (gateway == "JioPay") {
                     : _isLoadingGateways
     ? const Center(child: CircularProgressIndicator())
     : DropdownButtonFormField<String>(
-        value: selectedGateway,
+        initialValue: selectedGateway,
         hint: const Text('Select Gateway'),
         isExpanded: true,
         decoration: const InputDecoration(
