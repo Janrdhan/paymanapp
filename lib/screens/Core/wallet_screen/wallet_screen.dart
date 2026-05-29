@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:paymanapp/screens/Core/PayinGateways/payIn.dart';
 import 'package:paymanapp/widgets/api_handler.dart';
 import 'dart:io';
 import 'package:path_provider/path_provider.dart';
@@ -21,12 +22,16 @@ class WalletScreen extends StatefulWidget {
 class _WalletScreenState extends State<WalletScreen> with SingleTickerProviderStateMixin {
   late TabController _tabController;
   double _balance = 0.0;
-  bool _isLoadingOverall = true; // Single master loader
+  bool _isLoadingOverall = true;
   
   List<Map<String, dynamic>> _payInTransactions = [];
   List<Map<String, dynamic>> _payoutTransactions = [];
   List<Map<String, dynamic>> _passbookEntries = [];
   
+  // These are for tab‑specific loading (used later, but not for initial load)
+  bool _isLoadingPayIn = false;
+  bool _isLoadingPayout = false;
+  bool _isLoadingPassbook = false;
   
   String _errorMessage = '';
   String _searchQuery = '';
@@ -306,48 +311,18 @@ class _WalletScreenState extends State<WalletScreen> with SingleTickerProviderSt
     await Share.shareXFiles([XFile(file.path)], text: 'Exported $type');
   }
 
-  // ------------------- ADD MONEY -------------------
+  // ------------------- ADD MONEY (UPDATED) -------------------
   Future<void> _addMoney() async {
-    final amountController = TextEditingController();
-    final result = await showDialog<double>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text("Add Money to Wallet"),
-        content: TextField(
-          controller: amountController,
-          keyboardType: TextInputType.number,
-          decoration: const InputDecoration(hintText: "Enter amount", prefixText: "₹ ", border: OutlineInputBorder()),
-        ),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx, null), child: const Text("Cancel")),
-          ElevatedButton(
-            onPressed: () {
-              final amount = double.tryParse(amountController.text);
-              if (amount != null && amount > 0) Navigator.pop(ctx, amount);
-              else ScaffoldMessenger.of(ctx).showSnackBar(const SnackBar(content: Text("Valid amount")));
-            },
-            child: const Text("Add"),
-          ),
-        ],
+    // Navigate to the PayInScreen and wait for it to finish
+    await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (ctx) => PayInScreen(phone: widget.userPhone),
       ),
     );
-    if (result != null && result > 0) {
-      // Show overall loader again
-      setState(() => _isLoadingOverall = true);
-      try {
-        final res = await http.post(
-          Uri.parse('${ApiHandler.baseUri}/Wallet/AddMoney'),
-          headers: {"Content-Type": "application/json"},
-          body: jsonEncode({"userPhone": widget.userPhone, "amount": result}),
-        );
-        if (res.statusCode == 200) {
-          await _fetchWalletData(); // This will set overall loading to false when done
-          if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("₹$result added!")));
-        } else throw Exception('Add money failed');
-      } catch (e) {
-        setState(() => _isLoadingOverall = false);
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Failed: $e")));
-      }
+    // After returning (either payment done or back press), refresh wallet data
+    if (mounted) {
+      await _fetchWalletData();
     }
   }
 
@@ -477,8 +452,7 @@ class _WalletScreenState extends State<WalletScreen> with SingleTickerProviderSt
   }
 
   // These tab builders no longer have their own loading indicators because
-  // initial data is already present. For refresh / filter they can be enabled,
-  // but for simplicity we assume data is always there after initial load.
+  // initial data is already present.
   Widget _buildPayInTab() {
     final data = _filterList(_payInTransactions, 'description');
     if (data.isEmpty) return const Center(child: Text("No PayIn transactions"));
