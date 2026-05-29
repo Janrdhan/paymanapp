@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:paymanapp/screens/Bpps/bbps_billers_screen.dart';
 import 'package:paymanapp/screens/Core/LoginAppFiles/bills_recharges_screen.dart';
 import 'package:paymanapp/screens/Core/LoginAppFiles/category_listing_screen.dart';
+import 'package:paymanapp/screens/Core/wallet_screen/wallet_screen.dart';
 
 class HomeScreenApp extends StatefulWidget {
   final String userPhone;
@@ -151,25 +152,37 @@ class _HomeScreenAppState extends State<HomeScreenApp> {
   }
 
   // ---------- 2. Money Transfer Row ----------
-  Widget _buildMoneyTransferRow() {
-    final items = [
-      {'label': 'To Mobile\nNumber', 'icon': Icons.phone_android, 'color': Colors.green},
-      {'label': 'To Bank &\nSelf A/c', 'icon': Icons.account_balance, 'color': Colors.blue},
-      {'label': 'PhonePe\nWallet', 'icon': Icons.wallet, 'color': Colors.purple},
-      {'label': 'Check\nBalance', 'icon': Icons.balance, 'color': Colors.orange},
-    ];
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceAround,
-      children: items.map((item) {
-        return _buildIconTile(
-          icon: item['icon'] as IconData,
-          label: item['label'] as String,
-          color: item['color'] as Color,
-          onTap: () => _gotoBBPS(context, item['label'] as String),
-        );
-      }).toList(),
-    );
-  }
+ // ---------- 2. Money Transfer Row ----------
+Widget _buildMoneyTransferRow() {
+  final items = [
+    {'label': 'To Mobile\nNumber', 'icon': Icons.phone_android, 'color': Colors.green},
+    {'label': 'To Bank &\nSelf A/c', 'icon': Icons.account_balance, 'color': Colors.blue},
+    {'label': 'Payman\nWallet', 'icon': Icons.wallet, 'color': Colors.purple},
+    {'label': 'Check\nBalance', 'icon': Icons.balance, 'color': Colors.orange},
+  ];
+  return Row(
+    mainAxisAlignment: MainAxisAlignment.spaceAround,
+    children: items.map((item) {
+      return _buildIconTile(
+        icon: item['icon'] as IconData,
+        label: item['label'] as String,
+        color: item['color'] as Color,
+        onTap: () {
+          if (item['label'] == 'Payman\nWallet') {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => WalletScreen(userPhone: widget.userPhone),
+              ),
+            );
+          } else {
+            _gotoBBPS(context, item['label'] as String);
+          }
+        },
+      );
+    }).toList(),
+  );
+}
 
   // ---------- 3. SBI Card Promo ----------
   Widget _buildSbiCardPromo() {
