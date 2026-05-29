@@ -24,19 +24,19 @@ class _WalletScreenState extends State<WalletScreen> with SingleTickerProviderSt
   late TabController _tabController;
   double _balance = 0.0;
   bool _isLoadingOverall = true;
-  
+
   List<Map<String, dynamic>> _payInTransactions = [];
   List<Map<String, dynamic>> _payoutTransactions = [];
   List<Map<String, dynamic>> _passbookEntries = [];
-  
+
   String _errorMessage = '';
   String _searchQuery = '';
-  
+
   DateTimeRange _dateRange = DateTimeRange(
     start: DateTime.now(),
     end: DateTime.now(),
   );
-  
+
   @override
   void initState() {
     super.initState();
@@ -141,7 +141,7 @@ class _WalletScreenState extends State<WalletScreen> with SingleTickerProviderSt
       final response = await http.post(
         Uri.parse('${ApiHandler.baseUri}/Miscellaneous/GetPayOutTransactions'),
         headers: {"Content-Type": "application/json"},
-        body: jsonEncode({  
+        body: jsonEncode({
           'userPhone': widget.userPhone,
           'startDate': start,
           'endDate': end,
@@ -365,14 +365,21 @@ class _WalletScreenState extends State<WalletScreen> with SingleTickerProviderSt
         title: const Text("Payman Wallet"),
         elevation: 0,
         actions: [
+          // ✅ Date range picker button
+          IconButton(
+            icon: const Icon(Icons.calendar_today, color: Color(0xFF2563EB)),
+            onPressed: _selectDateRange,
+            tooltip: 'Select date range',
+          ),
           // Payout button
           IconButton(
-            icon: const Icon(Icons.send, color: Colors.blueAccent),
+            icon: const Icon(Icons.send, color: Color(0xFF2563EB)),
             onPressed: _sendMoney,
             tooltip: 'Send Money',
           ),
+          // Refresh button
           IconButton(
-            icon: const Icon(Icons.refresh, color: Colors.blueAccent),
+            icon: const Icon(Icons.refresh, color: Color(0xFF2563EB)),
             onPressed: _fetchWalletData,
             tooltip: 'Refresh',
           ),
