@@ -3,21 +3,16 @@ import 'package:paymanapp/screens/Bpps/bbps_billers_screen.dart';
 import 'package:paymanapp/screens/Core/LoginAppFiles/bills_recharges_screen.dart';
 import 'package:paymanapp/screens/Core/LoginAppFiles/category_listing_screen.dart';
 import 'package:paymanapp/screens/Core/wallet_screen/wallet_screen.dart';
+import 'package:paymanapp/screens/HomeContainer/kyc_helper.dart';
 
 class HomeScreenApp extends StatefulWidget {
   final String userPhone;
-  final String userName;
-  final double balance;
-  final bool isLoadingBalance;
   final VoidCallback onRefresh;
   final bool isB2B;
 
   const HomeScreenApp({
     super.key,
     required this.userPhone,
-    required this.userName,
-    required this.balance,
-    required this.isLoadingBalance,
     required this.onRefresh,
     required this.isB2B,
   });
@@ -152,37 +147,38 @@ class _HomeScreenAppState extends State<HomeScreenApp> {
   }
 
   // ---------- 2. Money Transfer Row ----------
- // ---------- 2. Money Transfer Row ----------
-Widget _buildMoneyTransferRow() {
-  final items = [
-    {'label': 'To Mobile\nNumber', 'icon': Icons.phone_android, 'color': Colors.green},
-    {'label': 'To Bank &\nSelf A/c', 'icon': Icons.account_balance, 'color': Colors.blue},
-    {'label': 'Payman\nWallet', 'icon': Icons.wallet, 'color': Colors.purple},
-    {'label': 'Check\nBalance', 'icon': Icons.balance, 'color': Colors.orange},
-  ];
-  return Row(
-    mainAxisAlignment: MainAxisAlignment.spaceAround,
-    children: items.map((item) {
-      return _buildIconTile(
-        icon: item['icon'] as IconData,
-        label: item['label'] as String,
-        color: item['color'] as Color,
-        onTap: () {
-          if (item['label'] == 'Payman\nWallet') {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (_) => WalletScreen(userPhone: widget.userPhone),
-              ),
-            );
-          } else {
-            _gotoBBPS(context, item['label'] as String);
-          }
-        },
-      );
-    }).toList(),
-  );
-}
+  Widget _buildMoneyTransferRow() {
+    final items = [
+      {'label': 'To Mobile\nNumber', 'icon': Icons.phone_android, 'color': Colors.green},
+      {'label': 'To Bank &\nSelf A/c', 'icon': Icons.account_balance, 'color': Colors.blue},
+      {'label': 'Payman\nWallet', 'icon': Icons.wallet, 'color': Colors.purple},
+      {'label': 'Check\nBalance', 'icon': Icons.balance, 'color': Colors.orange},
+    ];
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceAround,
+      children: items.map((item) {
+        return _buildIconTile(
+          icon: item['icon'] as IconData,
+          label: item['label'] as String,
+          color: item['color'] as Color,
+          onTap: () async {
+            if (item['label'] == 'Payman\nWallet') {
+              bool kycOk = await KYCValidator.checkAndRedirect(context, widget.userPhone);
+              if (!kycOk) return;
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => WalletScreen(userPhone: widget.userPhone),
+                ),
+              );
+            } else {
+              await _gotoBBPS(context, item['label'] as String);
+            }
+          },
+        );
+      }).toList(),
+    );
+  }
 
   // ---------- 3. SBI Card Promo ----------
   Widget _buildSbiCardPromo() {
@@ -266,7 +262,9 @@ Widget _buildMoneyTransferRow() {
         const SizedBox(height: 12),
         _buildPromoRow(
           title: "Free Delivery of Jio SIM",
-          onMoreTap: () {
+          onMoreTap: () async {
+            bool kycOk = await KYCValidator.checkAndRedirect(context, widget.userPhone);
+            if (!kycOk) return;
             Navigator.push(
               context,
               MaterialPageRoute(
@@ -306,7 +304,9 @@ Widget _buildMoneyTransferRow() {
         const SizedBox(height: 12),
         _buildPromoRow(
           title: "Get loan of up to ₹9,05,000",
-          onMoreTap: () {
+          onMoreTap: () async {
+            bool kycOk = await KYCValidator.checkAndRedirect(context, widget.userPhone);
+            if (!kycOk) return;
             Navigator.push(
               context,
               MaterialPageRoute(
@@ -357,7 +357,9 @@ Widget _buildMoneyTransferRow() {
         const SizedBox(height: 12),
         _buildPromoRow(
           title: "CaratLane Jewellery Scheme",
-          onMoreTap: () {
+          onMoreTap: () async {
+            bool kycOk = await KYCValidator.checkAndRedirect(context, widget.userPhone);
+            if (!kycOk) return;
             Navigator.push(
               context,
               MaterialPageRoute(
@@ -419,7 +421,9 @@ Widget _buildMoneyTransferRow() {
         const SizedBox(height: 12),
         _buildPromoRow(
           title: "Save ₹2500* on Health Policy",
-          onMoreTap: () {
+          onMoreTap: () async {
+            bool kycOk = await KYCValidator.checkAndRedirect(context, widget.userPhone);
+            if (!kycOk) return;
             Navigator.push(
               context,
               MaterialPageRoute(
@@ -470,7 +474,9 @@ Widget _buildMoneyTransferRow() {
         const SizedBox(height: 12),
         _buildPromoRow(
           title: "Start a SIP in 5 seconds",
-          onMoreTap: () {
+          onMoreTap: () async {
+            bool kycOk = await KYCValidator.checkAndRedirect(context, widget.userPhone);
+            if (!kycOk) return;
             Navigator.push(
               context,
               MaterialPageRoute(
@@ -521,7 +527,9 @@ Widget _buildMoneyTransferRow() {
         const SizedBox(height: 12),
         _buildPromoRow(
           title: "Save up to 30% on Hotels",
-          onMoreTap: () {
+          onMoreTap: () async {
+            bool kycOk = await KYCValidator.checkAndRedirect(context, widget.userPhone);
+            if (!kycOk) return;
             Navigator.push(
               context,
               MaterialPageRoute(
@@ -572,7 +580,9 @@ Widget _buildMoneyTransferRow() {
         const SizedBox(height: 12),
         _buildPromoRow(
           title: "Zero Joining Fee: SBI Card",
-          onMoreTap: () {
+          onMoreTap: () async {
+            bool kycOk = await KYCValidator.checkAndRedirect(context, widget.userPhone);
+            if (!kycOk) return;
             Navigator.push(
               context,
               MaterialPageRoute(
@@ -622,7 +632,9 @@ Widget _buildMoneyTransferRow() {
         Align(
           alignment: Alignment.centerRight,
           child: TextButton(
-            onPressed: () {
+            onPressed: () async {
+              bool kycOk = await KYCValidator.checkAndRedirect(context, widget.userPhone);
+              if (!kycOk) return;
               Navigator.push(
                 context,
                 MaterialPageRoute(
@@ -647,15 +659,15 @@ Widget _buildMoneyTransferRow() {
     );
   }
 
-  // ---------- Reusable Icon Tile ----------
+  // ---------- Reusable Icon Tile (supports async callbacks) ----------
   Widget _buildIconTile({
     required IconData icon,
     required String label,
     required Color color,
-    required VoidCallback onTap,
+    required Future<void> Function() onTap,
   }) {
     return GestureDetector(
-      onTap: onTap,
+      onTap: () async => await onTap(),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -683,8 +695,8 @@ Widget _buildMoneyTransferRow() {
     );
   }
 
-  // ---------- Reusable Promo Row ----------
-  Widget _buildPromoRow({required String title, required VoidCallback onMoreTap}) {
+  // ---------- Reusable Promo Row (async callback) ----------
+  Widget _buildPromoRow({required String title, required Future<void> Function() onMoreTap}) {
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 8),
       child: Row(
@@ -697,7 +709,7 @@ Widget _buildMoneyTransferRow() {
             ),
           ),
           TextButton(
-            onPressed: onMoreTap,
+            onPressed: () async => await onMoreTap(),
             style: TextButton.styleFrom(
               foregroundColor: const Color(0xFF2563EB),
               padding: EdgeInsets.zero,
@@ -711,8 +723,10 @@ Widget _buildMoneyTransferRow() {
     );
   }
 
-  // ---------- Navigation Helper ----------
-  void _gotoBBPS(BuildContext context, String category) {
+  // ---------- Navigation Helper with KYC Check ----------
+  Future<void> _gotoBBPS(BuildContext context, String category) async {
+    bool kycOk = await KYCValidator.checkAndRedirect(context, widget.userPhone);
+    if (!kycOk) return;
     Navigator.push(
       context,
       MaterialPageRoute(

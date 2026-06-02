@@ -183,7 +183,8 @@ class _KycScreenState extends State<KycScreen> {
       child: ElevatedButton(
         onPressed: onTap,
         style: ElevatedButton.styleFrom(
-          backgroundColor: paymanBlue,
+          backgroundColor: const Color(0xFF2563EB),
+          foregroundColor: Colors.white,
           padding: const EdgeInsets.symmetric(vertical: 14),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(14),

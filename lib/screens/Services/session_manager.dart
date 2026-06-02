@@ -5,6 +5,7 @@ class SessionManager {
   static const _refreshKey = 'refresh_token';
   static const _phoneKey = 'phone';
   static const _userKycKey = 'kyc_status';
+  static const _kycCompletedKey = 'kyc_completed'; // new
 
   static Future<void> saveSession({
     required String token,
@@ -39,9 +40,19 @@ class SessionManager {
     return prefs.getString(_phoneKey);
   }
 
-  static Future<bool?> getKycStatus() async {
+    static Future<bool?> getKycStatus() async {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getBool(_userKycKey);
+  }
+
+  static Future<void> setKycCompleted(bool completed) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(_kycCompletedKey, completed);
+  }
+
+  static Future<bool> isKycCompleted() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getBool(_kycCompletedKey) ?? false;
   }
 
   static Future<void> clearSession() async {

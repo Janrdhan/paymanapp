@@ -115,6 +115,26 @@ class AuthService {
     );
   }
 
+   // 🔹 NEW: Refresh KYC status from profile API
+  static Future<bool> refreshKYCStatus(String userPhone) async {
+    try {
+      final response = await http.get(
+        Uri.parse('${ApiHandler.baseUri}/Miscellaneous/GetProfile?userPhone=$userPhone'),
+      );
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        final bool aadhaar = data['isAadhaarVerified'] ?? false;
+        final bool pan = data['isPanVerified'] ?? false;
+        final bool completed = aadhaar && pan;
+        await SessionManager.setKycCompleted(completed);
+        return completed;
+      }
+    } catch (e) {
+      print("KYC refresh error: $e");
+    }
+    return false;
+  }
+
   // 🔹 FETCH TRANSACTIONS (with date range)
 static Future<List<Map<String, dynamic>>> getTransactions({
   required String startDate, // format 'YYYY-MM-DD'
