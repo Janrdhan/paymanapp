@@ -28,6 +28,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
   bool _isLoading = true;
   String _errorMessage = '';
   bool _hasPin = false;
+  bool _isAadhaarVerified = false;
+  bool _isPanVerified = false;
 
   @override
   void initState() {
@@ -47,14 +49,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
       );
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
-        print("Profile data: $data");
         setState(() {
           _userData = data;
           _hasPin = data['hasPin'] ?? false;
+          _isAadhaarVerified = data['isAadhaarVerified'] ?? false;
+          _isPanVerified = data['isPanVerified'] ?? false;
           _isLoading = false;
         });
 
-        // First-time user check
         if (data['isNewUser'] == true) {
           WidgetsBinding.instance.addPostFrameCallback((_) {
             _showCompleteProfileDialog();
@@ -87,9 +89,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               Navigator.pop(ctx);
               _navigateToEditProfile();
             },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF2563EB),
-            ),
+            style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF2563EB)),
             child: const Text("Complete Profile"),
           ),
         ],
@@ -124,49 +124,44 @@ class _ProfileScreenState extends State<ProfileScreen> {
   void _navigateToSetPin() {
     Navigator.push(
       context,
-      MaterialPageRoute(
-        builder: (ctx) => SetPinScreen(userPhone: widget.userPhone),
-      ),
+      MaterialPageRoute(builder: (ctx) => SetPinScreen(userPhone: widget.userPhone)),
     ).then((_) => _fetchUserProfile());
   }
 
   void _navigateToChangePin() {
     Navigator.push(
       context,
-      MaterialPageRoute(
-        builder: (ctx) => ChangePinScreen(userPhone: widget.userPhone),
-      ),
+      MaterialPageRoute(builder: (ctx) => ChangePinScreen(userPhone: widget.userPhone)),
     ).then((_) => _fetchUserProfile());
   }
 
   void _navigateToForgotPin() {
     Navigator.push(
       context,
-      MaterialPageRoute(
-        builder: (ctx) => ForgotPinScreen(userPhone: widget.userPhone),
-      ),
+      MaterialPageRoute(builder: (ctx) => ForgotPinScreen(userPhone: widget.userPhone)),
     ).then((_) => _fetchUserProfile());
   }
 
   void _navigateToKyc() {
     Navigator.push(
       context,
-      MaterialPageRoute(
-        builder: (ctx) => const KycScreen(),
-      ),
+      MaterialPageRoute(builder: (ctx) => const KycScreen()),
     ).then((_) => _fetchUserProfile());
   }
 
   void _navigateToEditProfile() {
     Navigator.push(
       context,
-      MaterialPageRoute(
-        builder: (ctx) => EditProfileScreen(
-          userPhone: widget.userPhone,
-          userData: _userData,
-        ),
-      ),
+      MaterialPageRoute(builder: (ctx) => EditProfileScreen(userPhone: widget.userPhone, userData: _userData)),
     ).then((_) => _fetchUserProfile());
+  }
+
+  String get _pendingDocumentsMessage {
+    List<String> pending = [];
+    if (!_isAadhaarVerified) pending.add("Aadhaar");
+    if (!_isPanVerified) pending.add("PAN");
+    if (pending.isEmpty) return "";
+    return "Please complete ${pending.join(" & ")} verification to complete KYC.";
   }
 
   @override
@@ -174,10 +169,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     if (_isLoading) {
       return Scaffold(
         backgroundColor: const Color(0xFFF8F9FC),
-        appBar: AppBar(
-          title: const Text("Profile"),
-          elevation: 0,
-        ),
+        appBar: AppBar(title: const Text("Profile"), elevation: 0),
         body: const Center(child: CircularProgressIndicator()),
       );
     }
@@ -191,10 +183,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             children: [
               Text(_errorMessage, style: const TextStyle(color: Colors.red)),
               const SizedBox(height: 16),
-              ElevatedButton(
-                onPressed: _fetchUserProfile,
-                child: const Text("Retry"),
-              ),
+              ElevatedButton(onPressed: _fetchUserProfile, child: const Text("Retry")),
             ],
           ),
         ),
@@ -203,8 +192,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
     final String userName = _userData['name'] ?? "User ${widget.userPhone.substring(widget.userPhone.length - 4)}";
     final String email = _userData['email'] ?? "Not provided";
-    final String kycStatus = _userData['kycStatus'] ?? "Pending";
-    final bool isKycComplete = kycStatus.toLowerCase() == "verified";
+    final bool isKycComplete = _isAadhaarVerified && _isPanVerified;
+    final String kycStatus = isKycComplete ? "Verified" : "Pending";
+    final String pendingMsg = _pendingDocumentsMessage;
 
     return Scaffold(
       backgroundColor: const Color(0xFFF8F9FC),
@@ -222,9 +212,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             Container(
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                  colors: [Color(0xFF1E3A8A), Color(0xFF2563EB)],
-                ),
+                gradient: const LinearGradient(colors: [Color(0xFF1E3A8A), Color(0xFF2563EB)]),
                 borderRadius: BorderRadius.circular(24),
               ),
               child: Column(
@@ -235,22 +223,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     child: Icon(Icons.person, size: 50, color: Color(0xFF2563EB)),
                   ),
                   const SizedBox(height: 12),
-                  Text(
-                    userName,
-                    style: const TextStyle(
-                      fontSize: 22,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                    ),
-                  ),
+                  Text(userName, style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.white)),
                   const SizedBox(height: 4),
-                  Text(
-                    widget.userPhone,
-                    style: const TextStyle(
-                      fontSize: 14,
-                      color: Colors.white70,
-                    ),
-                  ),
+                  Text(widget.userPhone, style: const TextStyle(fontSize: 14, color: Colors.white70)),
                   const SizedBox(height: 8),
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
@@ -266,29 +241,47 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 ],
               ),
             ),
-            const SizedBox(height: 24),
 
-            // Details card
+            const SizedBox(height: 8),
+
+            // Pending message (if any)
+            if (!isKycComplete && pendingMsg.isNotEmpty)
+              Container(
+                margin: const EdgeInsets.symmetric(horizontal: 16),
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                decoration: BoxDecoration(
+                  color: Colors.orange.shade50,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: Colors.orange.shade200),
+                ),
+                child: Row(
+                  children: [
+                    const Icon(Icons.info_outline, color: Colors.orange),
+                    const SizedBox(width: 8),
+                    Expanded(child: Text(pendingMsg, style: const TextStyle(color: Colors.orange))),
+                  ],
+                ),
+              ),
+
+            const SizedBox(height: 16),
+
+            // Personal Information card
             Container(
               decoration: BoxDecoration(
                 color: Colors.white,
                 borderRadius: BorderRadius.circular(20),
-                boxShadow: [
-                  BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 8, offset: const Offset(0, 2)),
-                ],
+                boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 8, offset: const Offset(0, 2))],
               ),
               child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const Padding(
                     padding: EdgeInsets.all(16),
-                    child: Text(
-                      "Personal Information",
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: Color(0xFF1E3A8A),
-                      ),
+                    child: Row(
+                      children: [
+                        Icon(Icons.person_outline, color: Color(0xFF2563EB)),
+                        SizedBox(width: 8),
+                        Text("Personal Information", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF1E3A8A))),
+                      ],
                     ),
                   ),
                   const Divider(height: 0, thickness: 1),
@@ -301,42 +294,78 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       onPressed: _navigateToEditProfile,
                     ),
                   ),
-                  const Divider(height: 0, indent: 60),
-                  ListTile(
-                    leading: const Icon(Icons.security, color: Color(0xFF2563EB)),
-                    title: const Text("KYC Status"),
-                    subtitle: Text(kycStatus),
-                    trailing: IconButton(
-                      icon: const Icon(Icons.arrow_forward_ios, size: 16),
-                      onPressed: _navigateToKyc,
+                ],
+              ),
+            ),
+            const SizedBox(height: 16),
+
+            // KYC Documents card
+            Container(
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(20),
+                boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 8, offset: const Offset(0, 2))],
+              ),
+              child: Column(
+                children: [
+                  const Padding(
+                    padding: EdgeInsets.all(16),
+                    child: Row(
+                      children: [
+                        Icon(Icons.verified_user, color: Color(0xFF2563EB)),
+                        SizedBox(width: 8),
+                        Text("KYC Documents", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF1E3A8A))),
+                      ],
                     ),
+                  ),
+                  const Divider(height: 0, thickness: 1),
+                  // Aadhaar – tappable only if not verified
+                  ListTile(
+                    leading: const Icon(Icons.credit_card, color: Color(0xFF2563EB)),
+                    title: const Text("Aadhaar Verification"),
+                    subtitle: Text(_isAadhaarVerified ? "Verified" : "Pending"),
+                    trailing: Icon(
+                      _isAadhaarVerified ? Icons.check_circle : Icons.arrow_forward_ios,
+                      color: _isAadhaarVerified ? Colors.green : Colors.grey,
+                      size: _isAadhaarVerified ? 20 : 16,
+                    ),
+                    onTap: _isAadhaarVerified ? null : _navigateToKyc,
+                  ),
+                  const Divider(height: 0, indent: 60),
+                  // PAN – shows check icon when verified
+                  ListTile(
+                    leading: const Icon(Icons.assignment, color: Color(0xFF2563EB)),
+                    title: const Text("PAN Verification"),
+                    subtitle: Text(_isPanVerified ? "Verified" : "Pending"),
+                    trailing: Icon(
+                      _isPanVerified ? Icons.check_circle : Icons.info_outline,
+                      color: _isPanVerified ? Colors.green : Colors.grey,
+                      size: _isPanVerified ? 20 : 16,
+                    ),
+                    onTap: null, // no action
                   ),
                 ],
               ),
             ),
             const SizedBox(height: 16),
 
-            // PIN Management card
+            // Security card
             Container(
               decoration: BoxDecoration(
                 color: Colors.white,
                 borderRadius: BorderRadius.circular(20),
-                boxShadow: [
-                  BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 8, offset: const Offset(0, 2)),
-                ],
+                boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 8, offset: const Offset(0, 2))],
               ),
               child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const Padding(
                     padding: EdgeInsets.all(16),
-                    child: Text(
-                      "Security",
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: Color(0xFF1E3A8A),
-                      ),
+                    child: Row(
+                      children: [
+                        Icon(Icons.lock, color: Color(0xFF2563EB)),
+                        SizedBox(width: 8),
+                        Text("Security", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF1E3A8A))),
+                      ],
                     ),
                   ),
                   const Divider(height: 0, thickness: 1),

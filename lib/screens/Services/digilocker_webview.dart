@@ -82,7 +82,7 @@ class _DigiLockerWebViewState extends State<DigiLockerWebView> {
 
     try {
       final response = await http.post(
-        Uri.parse("${ApiHandler.localhost}/Kyc/GetDigiLockerStatus"),
+        Uri.parse("${ApiHandler.baseUri}/Kyc/GetDigiLockerStatus"),
         headers: {"Content-Type": "application/json"},
         body: jsonEncode({
           "Phone": phone,

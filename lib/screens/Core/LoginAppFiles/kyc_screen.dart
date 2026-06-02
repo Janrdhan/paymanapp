@@ -32,7 +32,7 @@ class _KycScreenState extends State<KycScreen> {
     setState(() => _loading = true);
 
     final res = await http.post(
-      Uri.parse('${ApiHandler.localhost}/Kyc/StartDigilocker'),
+      Uri.parse('${ApiHandler.baseUri}/Kyc/StartDigilocker'),
       headers: {"Content-Type": "application/json"},
       body: jsonEncode({
         "Phone": phone,
