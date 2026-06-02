@@ -233,7 +233,7 @@ Widget _buildMoneyTransferRow() {
   // ---------- 4. Recharge & Bills Grid ----------
   Widget _buildRechargeBillsGrid() {
     final items = [
-      {'name': 'Mobile\nRecharge', 'icon': Icons.phone_android, 'color': Colors.blue, 'category': 'Mobile Recharge'},
+      {'name': 'Mobile\nRecharge', 'icon': Icons.phone_android, 'color': Colors.blue, 'category': 'Mobile Prepaid'},
       {'name': 'Tuition\nFees', 'icon': Icons.school, 'color': Colors.teal, 'category': 'Education Fees'},
       {'name': 'Electricity\nBill', 'icon': Icons.flash_on, 'color': Colors.orange, 'category': 'Electricity'},
       {'name': 'Loan\nRepayment', 'icon': Icons.account_balance, 'color': Colors.purple, 'category': 'Loan Repayment'},
@@ -285,7 +285,7 @@ Widget _buildMoneyTransferRow() {
       {'name': 'Personal\nLoan', 'icon': Icons.attach_money, 'color': Colors.green, 'category': 'Personal Loan'},
       {'name': 'Mutual Funds\nLoan', 'icon': Icons.trending_up, 'color': Colors.orange, 'category': 'Mutual Funds Loan'},
       {'name': 'Gold\nLoan', 'icon': Icons.workspace_premium, 'color': Colors.amber, 'category': 'Gold Loan'},
-      {'name': 'Credit Score\nFREE', 'icon': Icons.credit_score, 'color': Colors.blue, 'category': 'Credit Score'},
+      {'name': 'Credit Score\nFREE', 'icon': Icons.credit_score, 'color': Colors.blue, 'category': 'Credit Card'},
     ];
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,

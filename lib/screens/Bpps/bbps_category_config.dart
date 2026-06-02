@@ -67,4 +67,12 @@ final Map<String, BBPSCategoryConfig> bbpsConfig = {
       {"key": "policy", "label": "Policy Number"}
     ]
   ),
+
+  "Education Fees": BBPSCategoryConfig(
+  category: "Education Fees",
+  fields: [
+    {"key": "rollNumber", "label": "Roll Number / Student ID"},
+    {"key": "mobile", "label": "Mobile Number"}
+  ],
+),
 };

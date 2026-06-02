@@ -6,30 +6,33 @@ class BillsRechargesScreen extends StatelessWidget {
   const BillsRechargesScreen({super.key, required this.userPhone});
 
   final List<Map<String, dynamic>> telecomItems = const [
-    {'name': 'Mobile recharge', 'icon': Icons.phone_android, 'color': Colors.blue, 'isNew': false},
-    {'name': 'FASTag recharge', 'icon': Icons.directions_car, 'color': Colors.teal, 'isNew': false},
-    {'name': 'Mobile postpaid', 'icon': Icons.phone_iphone, 'color': Colors.indigo, 'isNew': false},
-    {'name': 'DTH recharge', 'icon': Icons.tv, 'color': Colors.purple, 'isNew': false},
-    {'name': 'Broadband bill', 'icon': Icons.wifi, 'color': Colors.orange, 'isNew': false},
-    {'name': 'Landline bill', 'icon': Icons.phone, 'color': Colors.green, 'isNew': false},
-    {'name': 'Cable TV', 'icon': Icons.cable, 'color': Colors.brown, 'isNew': false},
-    {'name': 'Metro', 'icon': Icons.train, 'color': Colors.blueGrey, 'isNew': true},
-    {'name': 'EV recharge', 'icon': Icons.electric_car, 'color': Colors.lightGreen, 'isNew': true},
+    {'name': 'Mobile recharge', 'icon': Icons.phone_android, 'color': Colors.blue, 'category': 'Mobile Prepaid', 'isNew': false},
+    {'name': 'FASTag recharge', 'icon': Icons.directions_car, 'color': Colors.teal, 'category': 'FASTag', 'isNew': false},
+    {'name': 'Mobile postpaid', 'icon': Icons.phone_iphone, 'color': Colors.indigo, 'category': 'Mobile Postpaid', 'isNew': false},
+    {'name': 'DTH recharge', 'icon': Icons.tv, 'color': Colors.purple, 'category': 'DTH', 'isNew': false},
+    {'name': 'Broadband bill', 'icon': Icons.wifi, 'color': Colors.orange, 'category': 'DTH', 'isNew': false},
+    {'name': 'Landline bill', 'icon': Icons.phone, 'color': Colors.green, 'category': 'Landline', 'isNew': false},
+    {'name': 'Cable TV', 'icon': Icons.cable, 'color': Colors.brown, 'category': 'Cable TV', 'isNew': false},
+    {'name': 'Metro', 'icon': Icons.train, 'color': Colors.blueGrey, 'category': 'Metro', 'isNew': false},
+    {'name': 'EV recharge', 'icon': Icons.electric_car, 'color': Colors.lightGreen, 'category': 'EV', 'isNew': false},
+    {'name': 'Municipal Services', 'icon': Icons.location_city, 'color': Colors.lightBlueAccent, 'category': 'Municipal Services', 'isNew': false},
   ];
 
   final List<Map<String, dynamic>> financeItems = const [
-    {'name': 'Credit card', 'icon': Icons.credit_card, 'color': Colors.blue},
-    {'name': 'Loan repayment', 'icon': Icons.account_balance, 'color': Colors.green},
-    {'name': 'LIC / insurance', 'icon': Icons.security, 'color': Colors.red},
-    {'name': 'Recurring deposit', 'icon': Icons.trending_up, 'color': Colors.orange},
+    {'name': 'Credit card', 'icon': Icons.credit_card, 'color': Colors.blue, 'category': 'Credit Card'},
+    {'name': 'Loan repayment', 'icon': Icons.account_balance, 'color': Colors.green, 'category': 'Loan Repayment'},
+    {'name': 'LIC / insurance', 'icon': Icons.security, 'color': Colors.red, 'category': 'Insurance'},
+    {'name': 'Recurring deposit', 'icon': Icons.trending_up, 'color': Colors.orange, 'category': 'Recurring Deposit'},
+    {'name': 'Mutual funds', 'icon': Icons.pie_chart, 'color': Colors.purple, 'category': 'Mutual Funds'},
+    {'name': 'Gold loan', 'icon': Icons.workspace_premium, 'color': Colors.amber, 'category': 'Gold Loan'},
   ];
 
   final List<Map<String, dynamic>> giftCards = const [
-    {'name': 'Amazon', 'icon': Icons.shopping_cart, 'color': Colors.orange},
-    {'name': 'Flipkart', 'icon': Icons.shop, 'color': Colors.blue},
-    {'name': 'Zomato', 'icon': Icons.restaurant, 'color': Colors.red},
-    {'name': 'Netflix', 'icon': Icons.movie, 'color': Colors.red},
-    {'name': 'Spotify', 'icon': Icons.music_note, 'color': Colors.green},
+    {'name': 'Amazon', 'icon': Icons.shopping_cart, 'color': Colors.orange, 'category': 'Amazon'},
+    {'name': 'Flipkart', 'icon': Icons.shop, 'color': Colors.blue, 'category': 'Flipkart'},
+    {'name': 'Zomato', 'icon': Icons.restaurant, 'color': Colors.red, 'category': 'Zomato'},
+    {'name': 'Netflix', 'icon': Icons.movie, 'color': Colors.red, 'category': 'Netflix'},
+    {'name': 'Spotify', 'icon': Icons.music_note, 'color': Colors.green, 'category': 'Spotify'},
   ];
 
   @override
@@ -111,7 +114,6 @@ class BillsRechargesScreen extends StatelessWidget {
             padding: const EdgeInsets.all(16),
             child: Text(title, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700)),
           ),
-          // ✅ Divider removed – no black line
           GridView.builder(
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
@@ -131,7 +133,7 @@ class BillsRechargesScreen extends StatelessWidget {
                     icon: item['icon'] as IconData,
                     label: item['name'] as String,
                     color: item['color'] as Color,
-                    onTap: () => _onTapItem(context, item['name'] as String),
+                    onTap: () => _onTapItem(context, item['category'] as String),
                   ),
                   if (showNewBadge && (item['isNew'] ?? false))
                     Positioned(
@@ -204,7 +206,6 @@ class BillsRechargesScreen extends StatelessWidget {
             padding: EdgeInsets.all(16),
             child: Text("Gift cards", style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700)),
           ),
-          // ✅ Divider removed
           SizedBox(
             height: 110,
             child: ListView.builder(
@@ -214,7 +215,7 @@ class BillsRechargesScreen extends StatelessWidget {
               itemBuilder: (context, index) {
                 final card = giftCards[index];
                 return GestureDetector(
-                  onTap: () => _onTapItem(context, card['name'] as String),
+                  onTap: () => _onTapItem(context, card['category'] as String),
                   child: Container(
                     width: 85,
                     margin: const EdgeInsets.only(right: 12),
@@ -243,12 +244,12 @@ class BillsRechargesScreen extends StatelessWidget {
     );
   }
 
-  void _onTapItem(BuildContext context, String name) {
+  void _onTapItem(BuildContext context, String category) {
     Navigator.push(
       context,
       MaterialPageRoute(
         builder: (_) => BBPSBillersScreen(
-          category: name,
+          category: category,
           userPhone: userPhone,
         ),
       ),

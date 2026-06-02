@@ -92,15 +92,19 @@ class _BBPSBillersScreenState extends State<BBPSBillersScreen> {
     return Scaffold(
       backgroundColor: const Color(0xFFF8F9FC),
       appBar: AppBar(
-        title: Text(widget.category),
+        title: Text(
+          widget.category,
+          style: const TextStyle(
+            fontWeight: FontWeight.w600,
+            letterSpacing: 0.3,
+          ),
+        ),
         elevation: 0,
       ),
       body: Column(
         children: [
-          // Gradient header
           _buildHeaderCard(),
           const SizedBox(height: 16),
-          // Search bar
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
             child: Container(
@@ -115,6 +119,7 @@ class _BBPSBillersScreenState extends State<BBPSBillersScreen> {
                 controller: _searchController,
                 decoration: InputDecoration(
                   hintText: "Search billers...",
+                  hintStyle: const TextStyle(fontSize: 14, fontWeight: FontWeight.w400, color: Colors.grey),
                   prefixIcon: const Icon(Icons.search, color: Color(0xFF2563EB)),
                   border: InputBorder.none,
                   contentPadding: const EdgeInsets.symmetric(vertical: 14),
@@ -124,7 +129,6 @@ class _BBPSBillersScreenState extends State<BBPSBillersScreen> {
             ),
           ),
           const SizedBox(height: 16),
-          // Body
           Expanded(child: _buildBody()),
         ],
       ),
@@ -154,12 +158,21 @@ class _BBPSBillersScreenState extends State<BBPSBillersScreen> {
               children: [
                 Text(
                   widget.category,
-                  style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 18),
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 20,
+                    letterSpacing: 0.5,
+                  ),
                 ),
                 const SizedBox(height: 4),
                 const Text(
                   "Choose your biller",
-                  style: TextStyle(color: Colors.white70, fontSize: 12),
+                  style: TextStyle(
+                    color: Colors.white70,
+                    fontSize: 13,
+                    fontWeight: FontWeight.w500,
+                  ),
                 ),
               ],
             ),
@@ -180,7 +193,7 @@ class _BBPSBillersScreenState extends State<BBPSBillersScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Text(_errorMessage, style: const TextStyle(color: Colors.red)),
+            Text(_errorMessage, style: const TextStyle(color: Colors.red, fontSize: 14)),
             const SizedBox(height: 16),
             ElevatedButton(
               onPressed: fetchBillers,
@@ -202,7 +215,7 @@ class _BBPSBillersScreenState extends State<BBPSBillersScreen> {
           children: [
             Icon(Icons.receipt, size: 64, color: Colors.grey),
             SizedBox(height: 16),
-            Text('No billers found', style: TextStyle(color: Colors.grey)),
+            Text('No billers found', style: TextStyle(color: Colors.grey, fontSize: 16)),
           ],
         ),
       );
@@ -222,13 +235,14 @@ class _BBPSBillersScreenState extends State<BBPSBillersScreen> {
             color: Colors.white,
             borderRadius: BorderRadius.circular(20),
             boxShadow: [
-              BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 8, offset: const Offset(0, 2)),
+              BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 8, offset: const Offset(0, 2)),
             ],
           ),
           child: ListTile(
+            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             leading: Container(
-              width: 48,
-              height: 48,
+              width: 52,
+              height: 52,
               decoration: BoxDecoration(
                 color: const Color(0xFF2563EB).withOpacity(0.1),
                 shape: BoxShape.circle,
@@ -237,23 +251,33 @@ class _BBPSBillersScreenState extends State<BBPSBillersScreen> {
                   ? ClipOval(
                       child: Image.network(
                         iconUrl,
-                        width: 40,
-                        height: 40,
+                        width: 44,
+                        height: 44,
                         fit: BoxFit.cover,
-                        errorBuilder: (_, __, ___) => Icon(Icons.receipt, color: const Color(0xFF2563EB), size: 24),
+                        errorBuilder: (_, __, ___) => Icon(Icons.receipt, color: const Color(0xFF2563EB), size: 26),
                       ),
                     )
-                  : Icon(Icons.receipt, color: const Color(0xFF2563EB), size: 24),
+                  : Icon(Icons.receipt, color: const Color(0xFF2563EB), size: 26),
             ),
             title: Text(
               biller['billerName'] ?? 'Unnamed',
-              style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 16),
+              style: const TextStyle(
+                fontWeight: FontWeight.w600,
+                fontSize: 16,
+                letterSpacing: 0.2,
+                height: 1.3,
+              ),
             ),
             subtitle: Text(
               biller['category'] ?? widget.category,
-              style: const TextStyle(fontSize: 13, color: Colors.grey),
+              style: const TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w400,
+                color: Colors.grey,
+                letterSpacing: 0.2,
+              ),
             ),
-            trailing: const Icon(Icons.chevron_right, color: Colors.grey),
+            trailing: const Icon(Icons.chevron_right, color: Colors.grey, size: 22),
             onTap: () => Navigator.push(
               context,
               MaterialPageRoute(
