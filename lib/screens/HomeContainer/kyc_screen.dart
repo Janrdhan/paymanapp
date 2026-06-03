@@ -2,7 +2,6 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:http/http.dart' as http;
-
 import 'package:paymanapp/screens/Services/digilocker_webview.dart';
 import 'package:paymanapp/screens/Services/session_manager.dart';
 import 'package:paymanapp/widgets/api_handler.dart';
@@ -21,7 +20,6 @@ class _KycScreenState extends State<KycScreen> {
   bool _verified = false;
   String? _successMessage;
 
-  // ---------------- START DIGILOCKER ----------------
   Future<void> _startDigiLocker() async {
     final phone = await SessionManager.getPhone();
     if (phone == null) {
@@ -51,7 +49,6 @@ class _KycScreenState extends State<KycScreen> {
     final verificationId = data["verification_id"];
     final redirectUrl = data["url"];
 
-    // 📱 MOBILE → WebView
     Navigator.push(
       context,
       MaterialPageRoute(
@@ -63,7 +60,6 @@ class _KycScreenState extends State<KycScreen> {
               _verified = true;
               _successMessage = message;
             });
-
             _toast(message);
           },
         ),
@@ -71,7 +67,6 @@ class _KycScreenState extends State<KycScreen> {
     );
   }
 
-  // ---------------- UI ----------------
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -93,7 +88,6 @@ class _KycScreenState extends State<KycScreen> {
     );
   }
 
-  // ---------------- AADHAAR CARD ----------------
   Widget _aadhaarCard() {
     return _card(
       title: "Aadhaar Verification",
@@ -119,7 +113,6 @@ class _KycScreenState extends State<KycScreen> {
     );
   }
 
-  // ---------------- SUCCESS CARD ----------------
   Widget _successCard() {
     return _card(
       title: "KYC Completed",
@@ -139,14 +132,13 @@ class _KycScreenState extends State<KycScreen> {
           ),
           const SizedBox(height: 24),
           _primaryBtn("Go to Home", () {
-            Navigator.pop(context, true); // notify parent
+            Navigator.pop(context, true);
           }),
         ],
       ),
     );
   }
 
-  // ---------------- UI HELPERS ----------------
   Widget _card({required String title, required Widget child}) {
     return Container(
       padding: const EdgeInsets.all(20),
@@ -183,14 +175,23 @@ class _KycScreenState extends State<KycScreen> {
       child: ElevatedButton(
         onPressed: onTap,
         style: ElevatedButton.styleFrom(
-          backgroundColor: const Color(0xFF2563EB),
+          backgroundColor: paymanBlue,
           foregroundColor: Colors.white,
+          disabledBackgroundColor: paymanBlue.withOpacity(0.5),
+          disabledForegroundColor: Colors.white.withOpacity(0.5),
           padding: const EdgeInsets.symmetric(vertical: 14),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(14),
           ),
         ),
-        child: Text(text),
+        child: Text(
+          text,
+          style: const TextStyle(
+            color: Colors.white,
+            fontSize: 16,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
       ),
     );
   }

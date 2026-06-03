@@ -134,42 +134,57 @@ class _BBPSFetchScreenState extends State<BBPSFetchScreen> {
   }
 
   void parseXml(String xmlString) {
-    try {
-      final document = XmlDocument.parse(xmlString);
-      final responseCode = document.findAllElements('responseCode').isNotEmpty
-          ? document.findAllElements('responseCode').first.text
-          : "";
-      if (responseCode != "000") {
-        final errorMessage = document.findAllElements('errorMessage').isNotEmpty
-            ? document.findAllElements('errorMessage').first.text
-            : "Bill Fetch Failed";
-        showToast(errorMessage);
-        parsedBill.clear();
-        additionalInfo.clear();
-        isBillFetched = false;
-        return;
-      }
+  try {
+    final document = XmlDocument.parse(xmlString);
+    final responseCode = document.findAllElements('responseCode').isNotEmpty
+        ? document.findAllElements('responseCode').first.text
+        : "";
+    if (responseCode != "000") {
+      final errorMessage = document.findAllElements('errorMessage').isNotEmpty
+          ? document.findAllElements('errorMessage').first.text
+          : "Bill Fetch Failed";
+      showToast(errorMessage);
       parsedBill.clear();
-      final billerResponse = document.findAllElements('billerResponse');
-      if (billerResponse.isNotEmpty) {
-        for (var node in billerResponse.first.children.whereType<XmlElement>()) {
-          parsedBill[node.name.local] = node.text;
-        }
-      }
       additionalInfo.clear();
-      final additional = document.findAllElements('additionalInfo');
-      if (additional.isNotEmpty) {
-        for (var info in additional.first.findAllElements('info')) {
-          final name = info.getElement('infoName')?.text ?? "Info";
-          final value = info.getElement('infoValue')?.text ?? "";
-          additionalInfo[name] = value;
-        }
-      }
-    } catch (e) {
-      showToast("XML Parse Error");
+      isBillFetched = false;
+      return;
     }
+    parsedBill.clear();
+    final billerResponse = document.findAllElements('billerResponse');
+    if (billerResponse.isNotEmpty) {
+      for (var node in billerResponse.first.children.whereType<XmlElement>()) {
+        String key = node.name.local;
+        String value = node.text;
+        // 🔹 Divide amount values by 100 (convert paise/cents to rupees)
+        if (key.toLowerCase().contains("bill amount")) {
+          if (double.tryParse(value) != null) {
+            double numValue = double.parse(value);
+            value = (numValue / 100).toStringAsFixed(2);
+          }
+        }
+        parsedBill[key] = value;
+      }
+    }
+    additionalInfo.clear();
+    final additional = document.findAllElements('additionalInfo');
+    if (additional.isNotEmpty) {
+      for (var info in additional.first.findAllElements('info')) {
+        final name = info.getElement('infoName')?.text ?? "Info";
+        final String rawValue = info.getElement('infoValue')?.text ?? "";
+        String value = rawValue;
+        if (name.toLowerCase().contains("bill amount")) {
+          if (double.tryParse(rawValue) != null) {
+            double numValue = double.parse(rawValue);
+            value = (numValue / 100).toStringAsFixed(2);
+          }
+        }
+        additionalInfo[name] = value;
+      }
+    }
+  } catch (e) {
+    showToast("XML Parse Error");
   }
-
+}
   Future<void> fetchBill() async {
     if (!_isFormValid()) return;
 

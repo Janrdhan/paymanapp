@@ -1,6 +1,8 @@
 import 'dart:convert';
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:paymanapp/screens/Core/LoginAppFiles/profile_screen.dart';
 import 'package:paymanapp/screens/HomeContainer/home_container.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:webview_flutter/webview_flutter.dart';
@@ -25,58 +27,50 @@ class DigiLockerWebView extends StatefulWidget {
 
 class _DigiLockerWebViewState extends State<DigiLockerWebView> {
   late final WebViewController _controller;
-
-  bool _checking = false;
-  bool _accessEstablished = false;
-
-  void _goToDashboard() async {
-    final phone = await SessionManager.getPhone();
-
-    if (phone == null) {
-      _showMessage("Session expired. Please login again.");
-      setState(() => _checking = false);
-      return;
-    }
-
-    Navigator.of(context).pushAndRemoveUntil(
-      MaterialPageRoute(
-        builder: (context) => HomeContainer(userPhone: phone), // Pass phone if needed
-      ),
-      (Route<dynamic> route) => false, // removes all previous routes
-    );
-  }
+  bool _isChecking = false;
+  bool _verified = false;
+  Timer? _pollTimer;
 
   @override
   void initState() {
     super.initState();
-
+    _startPolling();
     _controller = WebViewController()
       ..setJavaScriptMode(JavaScriptMode.unrestricted)
       ..setNavigationDelegate(
         NavigationDelegate(
           onPageFinished: (url) {
-            // 🔹 DigiLocker success page detection
-            if (url.contains("success") ||
-                url.contains("consent") ||
-                url.contains("digilocker")) {
-              setState(() => _accessEstablished = true);
-            }
+            // Trigger a check whenever a page finishes loading
+            _checkStatusOnce();
+          },
+          onNavigationRequest: (request) {
+            // Also check on navigation
+            _checkStatusOnce();
+            return NavigationDecision.navigate;
           },
         ),
       )
       ..loadRequest(Uri.parse(widget.url));
   }
 
-  // ---------------- CHECK DIGILOCKER STATUS ----------------
-  Future<void> _checkStatus() async {
-    if (_checking) return;
+  void _startPolling() {
+    _pollTimer = Timer.periodic(const Duration(seconds: 5), (timer) {
+      if (!_verified) {
+        _checkStatusOnce();
+      } else {
+        timer.cancel();
+      }
+    });
+  }
 
-    setState(() => _checking = true);
+  Future<void> _checkStatusOnce() async {
+    if (_isChecking || _verified) return;
+    setState(() => _isChecking = true);
 
     final phone = await SessionManager.getPhone();
     if (phone == null) {
       _showMessage("Session expired. Please login again.");
-      setState(() => _checking = false);
+      setState(() => _isChecking = false);
       return;
     }
 
@@ -92,90 +86,85 @@ class _DigiLockerWebViewState extends State<DigiLockerWebView> {
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
-
         final bool isSuccess = data["isSuccess"] ?? false;
         final String status = data["status"] ?? "";
         final String message = data["message"] ?? "";
-        if(isSuccess){
-          final prefs = await SharedPreferences.getInstance();
-          await prefs.setBool("kycStatus", isSuccess);
-        }
-
 
         if (isSuccess && status == "VERIFIED") {
-          // ✅ SUCCESS → GO TO HOME
+          final prefs = await SharedPreferences.getInstance();
+          await prefs.setBool("kycStatus", true);
+          _verified = true;
           widget.onVerified(
-            message.isNotEmpty
-                ? message
-                : "Aadhaar verified successfully via DigiLocker",
+            message.isNotEmpty ? message : "Aadhaar verified successfully via DigiLocker",
           );
-
-          Navigator.pop(context); // close webview
+          _pollTimer?.cancel();
+          _goToDashboard();
         } else if (status == "PENDING") {
-          _showMessage(
-            message.isNotEmpty
-                ? message
-                : "Verification is still in progress. Please wait.",
-          );
+          // Still pending, continue polling silently
         } else {
-          _showMessage(
-            message.isNotEmpty
-                ? message
-                : "Verification failed. Please try again.",
-          );
+          _showMessage("Verification failed. Please try again.");
+          _pollTimer?.cancel();
         }
       } else {
-        _showMessage("Unable to verify status. Please try again.");
+        // API error, keep polling
       }
     } catch (_) {
-      _showMessage("Network error. Please check your internet.");
+      // Network error, keep polling
     }
-
-    setState(() => _checking = false);
+    setState(() => _isChecking = false);
   }
 
-  // ---------------- UI ----------------
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text("Aadhaar Verification"),
+  void _goToDashboard() async {
+    final phone = await SessionManager.getPhone();
+    if (phone == null) return;
+    Navigator.of(context).pushAndRemoveUntil(
+      MaterialPageRoute(
+        builder: (context) => ProfileScreen(
+          userPhone: phone,
+          onLogout: () {
+            Navigator.pushReplacementNamed(context, '/');
+          },
+        ),
       ),
-      body: Stack(
-        children: [
-          WebViewWidget(controller: _controller),
-
-          if (_checking)
-            Container(
-              color: Colors.black26,
-              child: const Center(child: CircularProgressIndicator()),
-            ),
-        ],
-      ),
-
-      // 🔹 Continue button ONLY after DigiLocker access established
-      floatingActionButton: _accessEstablished
-          ? FloatingActionButton.extended(
-              onPressed: _checkStatus,
-              icon: const Icon(Icons.check),
-              label: const Text("Continue"),
-            )
-          : null,
+      (route) => false,
     );
   }
 
-  // ---------------- MESSAGE DIALOG ----------------
   void _showMessage(String message) {
+    _pollTimer?.cancel();
     showDialog(
       context: context,
-      builder: (_) => AlertDialog(
+      builder: (ctx) => AlertDialog(
         title: const Text("DigiLocker"),
         content: Text(message),
         actions: [
           TextButton(
-            onPressed: _goToDashboard, // navigate and clear stack
+            onPressed: () => Navigator.pop(ctx),
             child: const Text("OK"),
           ),
+        ],
+      ),
+    );
+  }
+
+  @override
+  void dispose() {
+    _pollTimer?.cancel();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text("Aadhaar Verification")),
+      body: Stack(
+        children: [
+          WebViewWidget(controller: _controller),
+          if (_isChecking)
+            Container(
+              color: Colors.black54,
+              child: const Center(child: CircularProgressIndicator()),
+            ),
         ],
       ),
     );
