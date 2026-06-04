@@ -6,8 +6,8 @@ class BBPSCategoryConfig {
 }
 
 final Map<String, BBPSCategoryConfig> bbpsConfig = {
-  "FASTag": BBPSCategoryConfig(
-    category: "FASTag",
+  "Fastag": BBPSCategoryConfig(
+    category: "Fastag",
     fields: [
       {"key": "vehicleNumber", "label": "Vehicle Number"}
     ],

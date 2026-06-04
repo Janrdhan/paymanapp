@@ -7,7 +7,7 @@ class BillsRechargesScreen extends StatelessWidget {
 
   final List<Map<String, dynamic>> telecomItems = const [
     {'name': 'Mobile recharge', 'icon': Icons.phone_android, 'color': Colors.blue, 'category': 'Mobile Prepaid', 'isNew': false},
-    {'name': 'FASTag recharge', 'icon': Icons.directions_car, 'color': Colors.teal, 'category': 'FASTag', 'isNew': false},
+    {'name': 'FASTag recharge', 'icon': Icons.directions_car, 'color': Colors.teal, 'category': 'Fastag', 'isNew': false},
     {'name': 'Mobile postpaid', 'icon': Icons.phone_iphone, 'color': Colors.indigo, 'category': 'Mobile Postpaid', 'isNew': false},
     {'name': 'DTH recharge', 'icon': Icons.tv, 'color': Colors.purple, 'category': 'DTH', 'isNew': false},
     {'name': 'Broadband bill', 'icon': Icons.wifi, 'color': Colors.orange, 'category': 'DTH', 'isNew': false},
